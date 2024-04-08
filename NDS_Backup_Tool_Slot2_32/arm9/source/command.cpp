@@ -5,8 +5,8 @@
 
 //#include "ftp.h"
 //#include "CardRead.h"
-#include "disc_io.h"
-#include "gba_nds_fat.h"
+// #include "disc_io.h"
+// #include "gba_nds_fat.h"
 
 #include "cardme.h"
 #include "command.h"
@@ -45,7 +45,7 @@ extern "C" {
 int SaveBK_upd(char *name)
 {
 
-	FAT_FILE	*savFile;
+	FILE	*savFile;
 //	int	ret;
 	u32	add;
 	int	per;
@@ -53,7 +53,7 @@ int SaveBK_upd(char *name)
 
 	dsp_bar(0, -1);
 	sprintf(fname, "%s/%s", ini.dir, name);
-	savFile = FAT_fopen(fname, "wb");
+	savFile = fopen(fname, "wb");
 	if(savFile == NULL) {
 		dsp_bar(-1, 0);
 		return false;
@@ -67,18 +67,18 @@ int SaveBK_upd(char *name)
 		cardmeReadEeprom(add, savebuf, 512, savetype); 
 		per = (add * 100) / siz;
 		dsp_bar(0, per);
-		FAT_fwrite((char *)savebuf, 512, 1, savFile);
+		fwrite((char *)savebuf, 512, 1, savFile);
 	}
 
 	memset((char *)savebuf, 0xFF, 512);
 	for(; add < siz; add += 512) {
 		per = (add * 100) / siz;
 		dsp_bar(0, per);
-		FAT_fwrite((char *)savebuf, 512, 1, savFile);
+		fwrite((char *)savebuf, 512, 1, savFile);
 	}
 	dsp_bar(0, 100);
 
-	FAT_fclose(savFile);
+	fclose(savFile);
 	dsp_bar(-1, 0);
 
 //	if(FTP_FileSize(name) != (int)siz)
@@ -99,7 +99,8 @@ void SaveBK_new(char *name)
 		sprintf(name, "%s_%s_%02d.sav", GameTitle, Gamecode, no);
 
 		sprintf(fname, "%s/%s", ini.dir, name);
-		if(FAT_FileExists(fname) != FAT_FT_FILE)
+		// if(FAT_FileExists(fname) != FAT_FT_FILE)
+		if(access(fname, F_OK) != 0)
 			break;
 	}
 
@@ -125,7 +126,7 @@ extern uint16* SubScreen;
 int Save_Rest(char *name)
 {
 
-	FAT_FILE	*savFile;
+	FILE	*savFile;
 //	int	ret;
 	u32	add;
 	int	per;
@@ -143,7 +144,7 @@ int Save_Rest(char *name)
 
 	dsp_bar(1, -1);
 	sprintf(fname, "%s/%s", ini.dir, name);
-	savFile = FAT_fopen(fname, "rb");
+	savFile = fopen(fname, "rb");
 	if(savFile == NULL) {
 		dsp_bar(-1, 0);
 		return false;
@@ -154,7 +155,7 @@ int Save_Rest(char *name)
 		dsp_bar(1, per);
 		len = savesize - add;
 		if(len > 512)	len = 512;
-		len = FAT_fread((char *)savebuf, len, 1, savFile);
+		len = fread((char *)savebuf, len, 1, savFile);
 		if(len > 0) {
 			cardmeWriteEeprom(add, savebuf, len, savetype);
 			add += len;
@@ -162,7 +163,7 @@ int Save_Rest(char *name)
 	}
 	dsp_bar(1, 100);
 
-	FAT_fclose(savFile);
+	fclose(savFile);
 	dsp_bar(-1, 0);
 
 	return true;
@@ -207,7 +208,7 @@ int Save_Init()
 int RomBK_upd(char *name)
 {
 
-	FAT_FILE	*ndsFile;
+	FILE	*ndsFile;
 
 	u32	add;
 	int	per;
@@ -225,25 +226,25 @@ int RomBK_upd(char *name)
 	}
 
 
-	ndsFile = FAT_fopen(fname, "wb");
+	ndsFile = fopen(fname, "wb");
 	if(ndsFile == NULL) {
 		dsp_bar(-1, 0);
 		return false;
 	}
 
 	dsp_bar(4, 0);
-	FAT_fwrite((char *)romhead, 512, 1, ndsFile);
+	fwrite((char *)romhead, 512, 1, ndsFile);
 
 	memset((char *)romsc2, 0x00, 0x3e00);
 	add = 0x4000;
 	per = (int)(((u64)add * 100) / siz);
 	dsp_bar(4, per);
-	FAT_fwrite((char *)romsc2, 0x3E00, 1, ndsFile);
+	fwrite((char *)romsc2, 0x3E00, 1, ndsFile);
 
 	add = 0x8000;
 	per = (int)(((u64)add * 100) / siz);
 	dsp_bar(4, per);
-	FAT_fwrite((char *)romsc1, 0x4000, 1, ndsFile);
+	fwrite((char *)romsc1, 0x4000, 1, ndsFile);
 
 	for(add = 0x8000; add < siz; add += 0x4000) {
 		for(len = 0; len < 0x4000; len += 512) {
@@ -252,13 +253,13 @@ int RomBK_upd(char *name)
 		}
 		per = (int)(((u64)(add + len) * 100) / siz);
 		dsp_bar(4, per);
-		FAT_fwrite((char *)romsc2, len, 1, ndsFile);
+		fwrite((char *)romsc2, len, 1, ndsFile);
 	}
 
 
 	dsp_bar(4, 100);
 
-	FAT_fclose(ndsFile);
+	fclose(ndsFile);
 	dsp_bar(-1, 0);
 
 //	if(FTP_FileSize(name) != (int)siz)

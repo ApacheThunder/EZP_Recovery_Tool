@@ -161,7 +161,8 @@ void setLangMsg()
 	u32	UserLang = 0;
 	int	i;
 
-	UserLang = PersonalData->_user_data.language;
+	// UserLang = PersonalData->_user_data.language;
+	UserLang = PersonalData->language;
 
 	if(UserLang != 0) {
 		for(i = 0; i < 14; i++)

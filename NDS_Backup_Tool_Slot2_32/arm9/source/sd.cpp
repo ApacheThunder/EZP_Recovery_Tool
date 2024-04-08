@@ -1,11 +1,13 @@
 #include <nds.h>
+#include <fat.h>
+#include <sys/stat.h>
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "disc_io.h"
-#include "gba_nds_fat.h"
+// #include "disc_io.h"
+// #include "gba_nds_fat.h"
 
 #include "sd.h"
 
@@ -36,10 +38,8 @@ struct	SD_File	fs[200];
 
 extern	char	*romsc2;
 
-
-void SD_ini()
-{
-	FAT_FILE	*ftpini;
+void SD_ini() {
+	FILE	*ftpini;
 	int	len, p, s;
 	char	key[20];
 
@@ -48,13 +48,14 @@ void SD_ini()
 	strcpy(ini.dir, "/NDS_Backup");
 
 
-	ftpini = FAT_fopen("/NDS_Backup_Tool_Slot2.ini", "rb");
+	ftpini = fopen("/NDS_Backup_Tool_Slot2.ini", "rb");
 	if(ftpini == NULL) {
-		FAT_mkdir(ini.dir);
+		// FAT_mkdir(ini.dir);
+		mkdir(ini.dir, 0777);
 		return;
 	}
 
-	len = FAT_fread(romsc2, 0x4000, 1, ftpini);
+	len = fread(romsc2, 0x4000, 1, ftpini);
 
 	p = 0;
 	while(p < len) {
@@ -118,22 +119,22 @@ void SD_ini()
 		}
 	}
 
-	FAT_fclose(ftpini);
+	fclose(ftpini);
 
 	if(ini.dir[0] != '/')
 		strcpy(ini.dir, "/NDS_Backup");
 
-	FAT_mkdir(ini.dir);
+	// FAT_mkdir(ini.dir);
+	mkdir(ini.dir, 0777);
 
 }
 
 
 extern	char	tbuf[];
 
-int SD_FileList(int type)
-{
-
-	u32	flen;
+int SD_FileList(int type) {
+	return 0; // Todo Fix this to modern libfat standards - Apache Thunder
+	/*u32	flen;
 	char	tn[3];
 	int	num;
 
@@ -142,7 +143,9 @@ int SD_FileList(int type)
 
 //	FAT_mkdir("/NDS_Backup");
 
-	FAT_CWD(ini.dir);
+	// FAT_CWD(ini.dir);
+	mkdir(ini.dir, 0777);
+
 
 	if(type == 0) {
 		tn[0] = 'S';
@@ -172,7 +175,7 @@ int SD_FileList(int type)
 		FAT_FileType=FAT_FindNextFile(tbuf);
 	}
 
-	return(num);
+	return(num);*/
 
 }
 

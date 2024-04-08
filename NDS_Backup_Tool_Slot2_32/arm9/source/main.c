@@ -23,15 +23,15 @@
 #include <nds/arm9/console.h> //basic print funcionality
 //#include <nds/registers_alt.h>
 //#include "wifi.h"
-
+#include <nds/arm9/dldi.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <fat.h>
+#include <fat.h>
 
-#include "disc_io.h"
-#include "gba_nds_fat.h"
+// #include "disc_io.h"
+// #include "gba_nds_fat.h"
 //extern LPIO_INTERFACE active_interface;
 
 #include "command.h"
@@ -797,22 +797,24 @@ void sts_dsp(int n1)
 
 
 
-extern u32	_io_dldi;
+// extern u32	_io_dldi;
 
 
-void dsp_main()
-{
-	char	ct[5];
+void dsp_main() {
+	// char	ct[5];
+	char* ct;
 
 	DrawBox(MainScreen, 2, 2, 253, 53, RGB15(0,0,0), 0);
 	DrawBox(MainScreen, 3, 3, 252, 52, RGB15(0,0,31), 1);
 	DrawBox(MainScreen, 4, 4, 251, 51, RGB15(31,31,31), 0);
 
-	ct[0] = _io_dldi & 0xFF;
-	ct[1] = (_io_dldi >> 8) & 0xFF;
-	ct[2] = (_io_dldi >> 16) & 0xFF;
-	ct[3] = (_io_dldi >> 24) & 0xFF;
-	ct[4] = 0;
+	// ct[0] = _io_dldi & 0xFF;
+	// ct[1] = (_io_dldi >> 8) & 0xFF;
+	// ct[2] = (_io_dldi >> 16) & 0xFF;
+	// ct[3] = (_io_dldi >> 24) & 0xFF;
+	// ct[4] = 0;
+	
+	ct = *io_dldi_data->magicString;
 	sprintf(tbuf, "Slot-2 Cartridge : [ %s ]", ct);
 	ShinoPrint(MainScreen, 11+24, 8, (u8 *)tbuf, RGB15(31,31,31), RGB15(31,31,31), 0);
 //	sprintf(tbuf, "FTP Server IP : %d.%d.%d.%d  Port %d", ini.sv_ip[0], ini.sv_ip[1], ini.sv_ip[2], ini.sv_ip[3], ini.port);
@@ -841,7 +843,7 @@ extern	void	setLang(void);
 
 void mainloop(void)
 {
-//	FAT_FILE	*r4dt;
+//	FILE	*r4dt;
 	int	cmd;
 	int	fl;
 
@@ -864,7 +866,7 @@ void mainloop(void)
 	DrawBox_SUB(SubScreen, 21, 4, 234, 26, 5, 1);
 	DrawBox_SUB(SubScreen, 22, 5, 233, 25, 0, 0);
 	ShinoPrint_SUB( SubScreen, 9*6, 1*12-2, (u8*)"NDS Backup Tool (Slot2)", 0, 0, 0 );
-	ShinoPrint_SUB( SubScreen, 33*6, 12, (u8 *)"v0.32", 0, 0, 0 );
+	ShinoPrint_SUB( SubScreen, 33*6, 12, (u8 *)"v0.33", 0, 0, 0 );
 
 	r4tf = 0;
 //	if(_io_dldi == 0x46543452) {		// R4TF
@@ -878,8 +880,8 @@ void mainloop(void)
 	setLangMsg();
 
 	sts_dsp(0);
-	if(FAT_InitFiles() == false) {
-		_io_dldi = 0;
+	if(!fatInitDefault()) {
+		// _io_dldi = 0;
 		r4tf = 0;
 		err_cnf(1, 2);
 		turn_off(r4tf);
@@ -887,9 +889,9 @@ void mainloop(void)
 
 
 //	if((_io_dldi == 0x46543452) && (r4tf == 0)) {		// R4TF
-//		r4dt = FAT_fopen("/_DS_MENU.DAT", "rb");
+//		r4dt = fopen("/_DS_MENU.DAT", "rb");
 //		(*(vu32*)0x027FFE18) = r4dt->dirEntSector*512+r4dt->dirEntOffset*32;
-//		FAT_fclose(r4dt);
+//		fclose(r4dt);
 //		r4tf = 1;
 //	}
 
@@ -1008,6 +1010,7 @@ void mainloop(void)
 
 }
 
+#define BG_256_COLOR   (BIT(7))
 
 //---------------------------------------------------------------------------------
 int main(void) {
@@ -1015,8 +1018,9 @@ int main(void) {
 
 	int	i;
 
-  vramSetMainBanks(VRAM_A_LCD ,  VRAM_B_LCD  , VRAM_C_SUB_BG, VRAM_D_MAIN_BG  );
-	powerON(POWER_ALL);
+  // vramSetMainBanks(VRAM_A_LCD ,  VRAM_B_LCD  , VRAM_C_SUB_BG, VRAM_D_MAIN_BG  );
+  vramSetPrimaryBanks(VRAM_A_LCD ,  VRAM_B_LCD  , VRAM_C_SUB_BG, VRAM_D_MAIN_BG  );
+	powerOn(POWER_ALL);
 
 	irqInit();
 	irqSet(IRQ_VBLANK, Vblank);
@@ -1025,7 +1029,8 @@ int main(void) {
 
  videoSetMode(MODE_FB0 | DISPLAY_BG2_ACTIVE);
  videoSetModeSub(MODE_0_2D | DISPLAY_BG0_ACTIVE );
- SUB_BG0_CR = BG_256_COLOR | BG_MAP_BASE(0) | BG_TILE_BASE(1);
+ // SUB_BG0_CR = BG_256_COLOR | BG_MAP_BASE(0) | BG_TILE_BASE(1);
+ REG_BG0CNT_SUB = BG_256_COLOR | BG_MAP_BASE(0) | BG_TILE_BASE(1);
  uint16* map1 = (uint16*)BG_MAP_RAM_SUB(0);
  for(i=0;i<(256*192/8/8);i++)	map1[i]=i;
  lcdMainOnTop();
@@ -1033,16 +1038,17 @@ int main(void) {
 //	ClearBG( MainScreen, RGB15(0,0,0) );
 
 	//サブ画面の表示
-	BG_PALETTE_SUB[0] = RGB15(31,31,31);		//(白)サブ画面のバックカラー
-	BG_PALETTE_SUB[1] = RGB15(0,0,0);			//(黒)サブ画面のフォアカラー
-	BG_PALETTE_SUB[2] = RGB15(30,0,0);			//(赤)
-	BG_PALETTE_SUB[3] = RGB15(0,30,0);			//(緑)
-	BG_PALETTE_SUB[4] = RGB15(0,31,31);			//(水色)
-	BG_PALETTE_SUB[5] = RGB15(0,0,31);			//(青)
-	BG_PALETTE_SUB[6] = RGB15(31,31,0);			//(黄)
-	BG_PALETTE_SUB[7] = RGB15(24,24,24);			//(灰)
+	BG_PALETTE_SUB[0] = RGB15(31,31,31);		//(白)サブ画面のバックカラー // (white) back color of sub screen
+	BG_PALETTE_SUB[1] = RGB15(0,0,0);			//(黒)サブ画面のフォアカラー //(black) sub screen foreground color
+	BG_PALETTE_SUB[2] = RGB15(30,0,0);			//(赤) //(red)
+	BG_PALETTE_SUB[3] = RGB15(0,30,0);			//(緑) //(green)
+	BG_PALETTE_SUB[4] = RGB15(0,31,31);			//(水色) //(light blue)
+	BG_PALETTE_SUB[5] = RGB15(0,0,31);			//(青) //(blue)
+	BG_PALETTE_SUB[6] = RGB15(31,31,0);			//(黄) //(yellow)
+	BG_PALETTE_SUB[7] = RGB15(24,24,24);			//(灰)	//(Ash)
 
-	ClearBG_SUB( SubScreen, 0 );				//バックを白に
+	// ClearBG_SUB( SubScreen, 0 );				//バックを白に // background to white
+	ClearBG_SUB( SubScreen, RGB15(0,0,0) );				//バックを白に // background to white
 
 
 
