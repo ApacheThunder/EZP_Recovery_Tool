@@ -8,6 +8,10 @@ endif
 export TARGET := NDS_Backup_Tool_Slot2
 export TOPDIR := $(CURDIR)
 
+export VERSION_MAJOR	:= 0
+export VERSION_MINOR	:= 33
+export VERSTRING	:=	$(VERSION_MAJOR).$(VERSION_MINOR)
+
 # GMAE_ICON is the image used to create the game icon, leave blank to use default rule
 GAME_ICON :=
 
@@ -41,7 +45,7 @@ checkarm9:
 #---------------------------------------------------------------------------------
 $(TARGET).nds : arm7/$(TARGET).elf arm9/$(TARGET).elf
 	@ndstool	-c $@ -7 arm7/$(TARGET).elf -9 arm9/$(TARGET).elf \
-				-b $(CURDIR)/logo32.bmp "NDS Backup Tool Slot2;Version 0.32;By Rudolph" \
+				-b $(CURDIR)/logo32.bmp "NDS Backup Tool Slot2;Version $(VERSTRING);By Rudolph" \
 				-g NDS2 01 "DSBACKUPSLT2" -z 80040000 -u 00030004 -a 00000138 -p 0001 \
 
 data:

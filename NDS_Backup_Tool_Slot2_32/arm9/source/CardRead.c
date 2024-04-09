@@ -4,7 +4,7 @@
 #include <nds/card.h>
 
 #include "CardRead.h"
-
+#include "keytbl.h"
 
 // Todo use libnds current reg defines - Apache Thunder
 /*#define CARD_CR1       (*(vu16*)0x040001A0)
@@ -46,14 +46,9 @@ u32	EncSeed;
 // 03809514 header
 
 u32	chip_id;
-u32	gameID;
+u32	gamecode;
 u32	cr2_normal;
 u32	cr2_key1;
-
-
-extern	char	*key2tbl;
-extern	char	*key1tbl;
-
 
 
 void Read_Init() {
@@ -138,7 +133,7 @@ int Read_Header(u8* header) {
 	} while(CARD_CR2 & CARD_BUSY);
 
 
-	gameID = *((u32*)(header + 0x0C));
+	gamecode = *((u32*)(header + 0x0C));
 	EncSeed = (u32)(header[0x13] & 0x07);
 //	cr2_normal = *((u32*)(header + 0x60));
 //	cr2_key1 = *((u32*)(header + 0x64));
@@ -207,7 +202,7 @@ void Act_Key2() {
 
 	cmd1 = (mmmnnn << 20) | kkkkk;
 	cmd2 = 0x40000000 | (llll << 12) | (mmmnnn >> 12);
-	Key1_cmd(cmd1, cmd2, gameID, (u8*)key1tbl);
+	Key1_cmd(cmd1, cmd2, gamecode, (u8*)key1tbl);
 	wait_TM1(0x05);
 
 	enc_key2(mmmnnn, key2tbl[EncSeed]);
@@ -230,7 +225,7 @@ u32 Read_CardID_2() {
 
 	cmd1 = (iiijjj << 20) | kkkkk;
 	cmd2 = 0x10000000 | (llll << 12) | (iiijjj >> 12);
-	Key1_cmd(cmd1, cmd2, gameID, (u8*)key1tbl);
+	Key1_cmd(cmd1, cmd2, gamecode, (u8*)key1tbl);
 	wait_TM1(0x05);
 
 	if(chip_id < 0x80000000) {
@@ -261,7 +256,7 @@ int Read_SData(u8* dbuf, u32 addr) {
 
 	cmd1 = (iiijjj << 20) | kkkkk;
 	cmd2 = 0x20000000 | addr | (iiijjj >> 12);
-	Key1_cmd(cmd1, cmd2, gameID, (u8*)key1tbl);
+	Key1_cmd(cmd1, cmd2, gamecode, (u8*)key1tbl);
 	wait_TM1(0x05);
 
 
@@ -312,7 +307,7 @@ void Data_Mode() {
 
 	cmd1 = (iiijjj << 20) | kkkkk;
 	cmd2 = 0xA0000000 | (llll << 12) | (iiijjj >> 12);
-	Key1_cmd(cmd1, cmd2, gameID, (u8*)key1tbl);
+	Key1_cmd(cmd1, cmd2, gamecode, (u8*)key1tbl);
 	wait_TM1(0x05);
 
 	enc_key2(mmmnnn, key2tbl[EncSeed]);
@@ -397,6 +392,18 @@ u32	Rom_Read(int type, u8* header, u8* sc1) {
 	u32	id, id2, id3;
 	u32	i;
 	u8	*ptr;
+	
+	if (isDSiMode() && (REG_SCFG_EXT & BIT(31))) {
+		if (REG_SCFG_MC == 0x10) {
+			enableSlot1();
+			for (int I = 0; I < 20; I++)swiWaitForVBlank();
+		} else {
+			disableSlot1();
+			for (int I = 0; I < 20; I++)swiWaitForVBlank();
+			enableSlot1();
+			for (int I = 0; I < 20; I++)swiWaitForVBlank();
+		}
+	}
 
 	if(type == 0)Read_Init();
 	
@@ -433,7 +440,7 @@ u32	Rom_Read(int type, u8* header, u8* sc1) {
 	id3 = Read_CardID_3();
 	if(id != id3)	return(0xFFFFFFFF);
 
-	encryObj(gameID, sc1, (u8*)key1tbl);
+	encryObj(gamecode, sc1, (u8*)key1tbl);
 
 	return(id);
 }

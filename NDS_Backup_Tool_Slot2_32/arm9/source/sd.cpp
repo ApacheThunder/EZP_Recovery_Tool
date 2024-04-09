@@ -128,8 +128,9 @@ void SD_ini() {
 
 extern	char	tbuf[];
 
+// Todo - Fix this to modern libfat standards - Apache Thunder
 int SD_FileList(int type) {
-	return 0; // Todo Fix this to modern libfat standards - Apache Thunder
+	return 0;
 	/*u32	flen;
 	char	tn[3];
 	int	num;

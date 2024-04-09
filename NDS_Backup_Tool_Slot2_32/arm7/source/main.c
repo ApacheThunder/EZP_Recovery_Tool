@@ -33,7 +33,7 @@
 // #include <maxmod7.h>
 
 // #define IPC_CMD_GBAMODE  1
-#define IPC_CMD_TURNOFF  9
+/*#define IPC_CMD_TURNOFF  9
 // #define IPC_CMD_SR_R4TF 11
 // #define IPC_CMD_SR_DLMS 12
 
@@ -42,8 +42,6 @@
 #define IPC_CMD_KEY_TBL  0x20
 
 extern	void	ARM7_Bios(u8 *tbl);
-
-// volatile bool exitflag = false;
 
 extern	u32	chip_id;
 
@@ -61,27 +59,10 @@ void FIFO_Receive() {
 		
 		switch(fifo) 
 		{
-/***********
-			case IPC_CMD_GBAMODE:
-				gbaMode();
-				while(1);
-				break;
-**********/
 			case IPC_CMD_TURNOFF:
 				systemShutDown();
 				while(1)swiWaitForVBlank();
 				break;
-/***********
-			case IPC_CMD_SR_R4TF:
-				ret_menu7_R4();
-				while(1);
-				break;
-			case IPC_CMD_SR_DLMS:
-				LinkReset_ARM7();
-				while(1);
-				break;
-***********/
-
 			case IPC_CMD_KEY_TBL:
 				while((REG_IPC_FIFO_CR & IPC_FIFO_RECV_EMPTY))swiWaitForVBlank();
 				fifo = REG_IPC_FIFO_RX;
@@ -93,8 +74,11 @@ void FIFO_Receive() {
 
 		}
 	}
-}
+}*/
 
+volatile bool exitflag = false;
+
+void powerButtonCB() { exitflag = true; }
 
 //---------------------------------------------------------------------------------
 void VblankHandler(void) {
@@ -125,8 +109,8 @@ int main() {
 	irqInit();
 	// Start the RTC tracking IRQ
 	initClockIRQ();
-	// fifoInit();
-	FIFOInit();
+	fifoInit();
+	// FIFOInit();
 	touchInit();
 
 	// mmInstall(FIFO_MAXMOD);
@@ -136,13 +120,27 @@ int main() {
 	// installWifiFIFO();
 	// installSoundFIFO();
 
-	// installSystemFIFO();
-
+	installSystemFIFO();
+	
 	irqSet(IRQ_VCOUNT, VcountHandler);
+	irqSet(IRQ_VBLANK, VblankHandler);
+	
+	irqEnable( IRQ_VBLANK | IRQ_VCOUNT);
+	
+	if (REG_SNDEXTCNT != 0) {
+		i2cWriteRegister(0x4A, 0x12, 0x00);	// Press power-button for auto-reset
+		i2cWriteRegister(0x4A, 0x70, 0x01);	// Bootflag = Warmboot/SkipHealthSafety
+	}
+
+
+
+	/*irqSet(IRQ_VCOUNT, VcountHandler);
 	irqEnable(IRQ_VBLANK | IRQ_VCOUNT);
 	irqSet(IRQ_FIFO_NOT_EMPTY, FIFO_Receive);
 	irqEnable(IRQ_FIFO_NOT_EMPTY);
-	REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_RECV_IRQ;
+	REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_RECV_IRQ;*/
+
+	setPowerButtonCB(powerButtonCB);
 
 	// Keep the ARM7 mostly idle
 	while(1)swiWaitForVBlank();

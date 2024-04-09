@@ -1,4 +1,3 @@
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,3 +26,4 @@ extern	u32	Rom_Read(int type, u8* header, u8* sc1);
 #ifdef __cplusplus
 }
 #endif
+

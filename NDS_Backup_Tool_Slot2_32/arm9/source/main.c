@@ -69,9 +69,10 @@ int	numFiles = 0;
 
 int	CMDmode = 0;
 
-char	*keytbl;
-char	*key2tbl;
+
+/*extern char keytbl[];
 char	*key1tbl;
+char	*key2tbl;*/
 char	*romhead;
 char	*romsc1;
 char	*romsc2;
@@ -101,8 +102,7 @@ void FIFOSend(u32 val) { REG_IPC_FIFO_TX = val; }
 
 
 
-u32 inp_key()
-{
+u32 inp_key() {
 	u32	ky;
 
 	while(1) {
@@ -123,13 +123,13 @@ u32 inp_key()
 
 extern	void	ret_menu9_R4(void);
 
-void turn_off(int cmd)
-{
+void turn_off(int cmd) {
 
 //	FIFOInit();
 
 //	if(cmd == 0)			// ìdåπíf
-		FIFOSend(IPC_CMD_TURNOFF);
+		// FIFOSend(IPC_CMD_TURNOFF);
+		systemShutDown();
 
 /*****
 	if(cmd == 1) {			// R4 Soft Reset
@@ -156,8 +156,7 @@ void turn_off(int cmd)
 
 
 
-void err_cnf(int n1, int n2)
-{
+void err_cnf(int n1, int n2) {
 	int	len;
 	int	x1, x2;
 	int	y1, y2;
@@ -206,8 +205,7 @@ void err_cnf(int n1, int n2)
 }
 
 
-int cnf_inp(int mode, int n1, int n2)
-{
+int cnf_inp(int mode, int n1, int n2) {
 	int	len;
 	int	x1, x2;
 	int	y1, y2;
@@ -262,8 +260,7 @@ int cnf_inp(int mode, int n1, int n2)
 u16	*gbar = NULL;
 int	oldper;
 
-void dsp_bar(int mod, int per)
-{
+void dsp_bar(int mod, int per) {
 	int	x1, x2;
 	int	y1, y2;
 	int	xi, yi;
@@ -322,18 +319,15 @@ void dsp_bar(int mod, int per)
 // int	r4tf;
 
 
-void _dsp_clear()
-{
+void _dsp_clear() {
 //	DrawBox_SUB(SubScreen, 0, 28, 255, 114, 0, 1);
 	DrawBox_SUB(SubScreen, 0, 28, 255, 114, 0, 1);
-
 }
 
 #define	FILELINE	10
 #define	FILEY		6
 
-void _ftp_dsp(int no, int mod, int x, int y)
-{
+void _ftp_dsp(int no, int mod, int x, int y) {
 //	int	i;
 	char	dsp[40];
 
@@ -357,8 +351,7 @@ void _ftp_dsp(int no, int mod, int x, int y)
 }
 
 
-void _ftp_sel_dsp(int no, int yc, int mod)
-{
+void _ftp_sel_dsp(int no, int yc, int mod) {
 	int	x, y;
 	int	st, i;
 	u16	pl, pls;
@@ -420,8 +413,7 @@ void _ftp_sel_dsp(int no, int yc, int mod)
 
 
 
-bool set_rom()
-{
+bool set_rom(bool forcePause) {
 //	int	len;
 	int	i;
 	u32	gc;
@@ -435,9 +427,11 @@ bool set_rom()
 	ShinoPrint_SUB( SubScreen, 5*6, 14*12, (u8 *)tbuf, 1, 0, 0);
 ***/
 
-	if(cnf_inp(0, 2, 3) & KEY_B)return false;
-
-	romID = Rom_Read(0, (u8*)romhead, (u8*)romsc1);
+	if (forcePause || !(isDSiMode() && (REG_SCFG_EXT & BIT(31)))) {
+		if(cnf_inp(0, 2, 3) & KEY_B)return false;
+	}
+		
+	romID = Rom_Read(0, (u8*)romhead, (u8*)romsc1);;
 	while(romID == 0xFFFFFFFF) {
 		if(cnf_inp(0, 7, 8) & KEY_B)return false;
 
@@ -536,8 +530,7 @@ if(savetype == 0) {				// Unknown
 
 
 
-bool _ftp_sel_sub1(int *yc, int *sel)
-{
+bool _ftp_sel_sub1(int *yc, int *sel) {
 	int	x, y;
 	u32	repky;
 
@@ -577,8 +570,7 @@ bool _ftp_sel_sub1(int *yc, int *sel)
 	return false;
 }
 
-void _ftp_sel_sub2(u32 ky, int *yc, int *sel)
-{
+void _ftp_sel_sub2(u32 ky, int *yc, int *sel) {
 	int	x, y;
 	int	st0, st1;
 
@@ -625,8 +617,7 @@ void _ftp_sel_sub2(u32 ky, int *yc, int *sel)
 }
 
 
-int ftp_sel()
-{
+int ftp_sel() {
 	char	name[30];
 	int	cmd = 0;
 	int	sel;
@@ -680,9 +671,14 @@ int ftp_sel()
 			cmd = -1;
 			break;
 		}
+	
 
-		if(ky & KEY_X) {
-			if(set_rom() == false) {
+		if((ky & KEY_X) || (isDSiMode() && (REG_SCFG_MC == 0x11))) {
+			if (isDSiMode() && (REG_SCFG_MC != 0x10) && (REG_SCFG_MC != 0x11)) { 
+				disableSlot1();
+				for (int I = 0; I < 20; I++)swiWaitForVBlank();
+			}
+			if(set_rom(true) == false) {
 				cmd = -1;
 				break;
 			}
@@ -763,8 +759,7 @@ int ftp_sel()
 }
 
 
-void sts_dsp(int n1)
-{
+void sts_dsp(int n1) {
 	int	len;
 	int	x1, x2;
 	int	y1, y2;
@@ -802,13 +797,17 @@ void dsp_main() {
 	DrawBox(MainScreen, 3, 3, 252, 52, RGB15(0,0,31), 1);
 	DrawBox(MainScreen, 4, 4, 251, 51, RGB15(31,31,31), 0);
 	
-	ct[0] = io_dldi_data->ioInterface.ioType & 0xFF;
-	ct[1] = (io_dldi_data->ioInterface.ioType >> 8) & 0xFF;
-	ct[2] = (io_dldi_data->ioInterface.ioType >> 16) & 0xFF;
-	ct[3] = (io_dldi_data->ioInterface.ioType >> 24) & 0xFF;
-	ct[4] = 0;
-		
-	sprintf(tbuf, "Slot-2 Cartridge : [ %s ]", ct);
+	if (isDSiMode()) {
+		sprintf(tbuf, "Slot-2 Cartridge : [ DSI SD ]");
+	} else {
+		ct[0] = io_dldi_data->ioInterface.ioType & 0xFF;
+		ct[1] = (io_dldi_data->ioInterface.ioType >> 8) & 0xFF;
+		ct[2] = (io_dldi_data->ioInterface.ioType >> 16) & 0xFF;
+		ct[3] = (io_dldi_data->ioInterface.ioType >> 24) & 0xFF;
+		ct[4] = 0;
+		sprintf(tbuf, "Slot-2 Cartridge : [ %s ]", ct);
+	}
+
 	ShinoPrint(MainScreen, 11+24, 8, (u8 *)tbuf, RGB15(31,31,31), RGB15(31,31,31), 0);
 //	sprintf(tbuf, "FTP Server IP : %d.%d.%d.%d  Port %d", ini.sv_ip[0], ini.sv_ip[1], ini.sv_ip[2], ini.sv_ip[3], ini.port);
 //	ShinoPrint(MainScreen, 11, 8, (u8 *)tbuf, RGB15(31,31,31), RGB15(31,31,31), 0);
@@ -844,9 +843,9 @@ void mainloop(void) {
 	TIMER1_DATA = 0;
 	TIMER1_CR = TIMER_ENABLE | TIMER_CASCADE | TIMER_DIV_1;
 
-	keytbl = (char *)malloc(0x1200);
-	key2tbl = keytbl + 0x2A;
-	key1tbl = keytbl + 0x30;
+	// keytbl = (char *)malloc(0x1200);
+	/*key2tbl = keytbl + 0x2A;
+	key1tbl = keytbl + 0x30;*/
 	romhead = (char *)malloc(0x200);
 	romsc1 = (char *)malloc(0x4000);
 	romsc2 = (char *)malloc(0x4000);
@@ -880,7 +879,6 @@ void mainloop(void) {
 		turn_off(0);
 	}
 
-
 //	if((_io_dldi == 0x46543452) && (r4tf == 0)) {		// R4TF
 //		r4dt = fopen("/_DS_MENU.DAT", "rb");
 //		(*(vu32*)0x027FFE18) = r4dt->dirEntSector*512+r4dt->dirEntOffset*32;
@@ -911,8 +909,8 @@ void mainloop(void) {
 //	for(vi = 0; vi < 20; vi++)
 //		swiWaitForVBlank();
 
-	FIFOSend(IPC_CMD_KEY_TBL);
-	FIFOSend((u32)keytbl);
+	// FIFOSend(IPC_CMD_KEY_TBL);
+	// FIFOSend((u32)keytbl);
 
 
 /********
@@ -943,22 +941,24 @@ void mainloop(void) {
 		turn_off(r4tf);
 	}
 ******/
+
 	sts_dsp(-1);
 
-
 //	WAIT_CR &= 0x77FF;
+
+	bool forcePause = false;
+	if (isDSiMode() && (REG_SCFG_EXT & BIT(31)) && (REG_SCFG_MC == 0x11))forcePause = true;
 			
-	if(set_rom() == false) {
+	if(set_rom(forcePause) == false) {
 //		FTP_Logoff();
 //		disconnectWifi();
 
-		free(keytbl);
+		// free(keytbl);
 		free(romhead);
 		free(romsc1);
 		free(romsc2);
 		turn_off(0);
 	}
-
 
 	DrawBox_SUB(SubScreen, 6, 125, 249, 190, 5, 0);
 	DrawBox_SUB(SubScreen, 8, 127, 247, 188, 5, 0);
@@ -995,7 +995,7 @@ void mainloop(void) {
 //	disconnectWifi();
 
 
-	free(keytbl);
+	// free(keytbl);
 	free(romhead);
 	free(romsc1);
 	free(romsc2);
@@ -1015,10 +1015,10 @@ int main(void) {
   vramSetPrimaryBanks(VRAM_A_LCD ,  VRAM_B_LCD  , VRAM_C_SUB_BG, VRAM_D_MAIN_BG  );
 	powerOn(POWER_ALL);
 
-	irqInit();
-	irqSet(IRQ_VBLANK, Vblank);
-	irqEnable(IRQ_VBLANK);
-	FIFOInit();
+	// irqInit();
+	// irqSet(IRQ_VBLANK, Vblank);
+	// irqEnable(IRQ_VBLANK);
+	// FIFOInit();
 
  videoSetMode(MODE_FB0 | DISPLAY_BG2_ACTIVE);
  videoSetModeSub(MODE_0_2D | DISPLAY_BG0_ACTIVE );
