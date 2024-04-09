@@ -53,6 +53,7 @@ extern uint16* SubScreen;
 //uint16* MainScreen = VRAM_A;
 //uint16* SubScreen = (uint16*)BG_TILE_RAM_SUB(1);
 
+#define BG_256_COLOR   (BIT(7))
 
 char	GameTitle[13];
 char	Gamecode[5];
@@ -80,7 +81,7 @@ char	tbuf[256];
 
 #define IPC_CMD_GBAMODE  1
 #define IPC_CMD_TURNOFF  9
-#define IPC_CMD_SR_R4TF 11
+// #define IPC_CMD_SR_R4TF 11
 #define IPC_CMD_SR_DLMS 12
 
 //u32	arm9fifo;
@@ -91,16 +92,12 @@ void Vblank()
 {
 }
 
-void FIFOInit()
-{
+void FIFOInit() {
 	REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_SEND_CLEAR;
 }
 
 
-void FIFOSend(u32 val)
-{
-	REG_IPC_FIFO_TX = val;
-}
+void FIFOSend(u32 val) { REG_IPC_FIFO_TX = val; }
 
 
 
@@ -322,7 +319,7 @@ void dsp_bar(int mod, int per)
 }
 
 
-int	r4tf;
+// int	r4tf;
 
 
 void _dsp_clear()
@@ -438,17 +435,14 @@ bool set_rom()
 	ShinoPrint_SUB( SubScreen, 5*6, 14*12, (u8 *)tbuf, 1, 0, 0);
 ***/
 
-	if(cnf_inp(0, 2, 3) & KEY_B)
-		return false;
+	if(cnf_inp(0, 2, 3) & KEY_B)return false;
 
 	romID = Rom_Read(0, (u8*)romhead, (u8*)romsc1);
 	while(romID == 0xFFFFFFFF) {
-		if(cnf_inp(0, 7, 8) & KEY_B)
-			return false;
+		if(cnf_inp(0, 7, 8) & KEY_B)return false;
 
 		romID = Rom_Read(1, (u8*)romhead, (u8*)romsc1);
 	}
-
 
 	for(i = 0; i < 12; i++) {
 		if((romhead[i] >= 0x30 && romhead[i] <= 0x39) || (romhead[i] >= 0x41 && romhead[i] <= 0x5A))
@@ -519,7 +513,7 @@ if(savetype == 0) {				// Unknown
 	sprintf(tbuf, "Game Title : %s %s %02X", GameTitle, Gamecode, RomVer);
 	ShinoPrint_SUB( SubScreen, 5*6, 4*12, (u8 *)tbuf, 1, 0, 0);
 
-	sprintf(tbuf, "Chip ID : %02X %02X %02X %02X", romID & 0xFF, (romID >> 8) & 0xFF, (romID >> 16) & 0xFF, (romID >> 24) & 0xFF);
+	sprintf(tbuf, "Chip ID : %02X %02X %02X %02X", (unsigned int)romID & 0xFF, (unsigned int)(romID >> 8) & 0xFF, (unsigned int)(romID >> 16) & 0xFF, (unsigned int)(romID >> 24) & 0xFF);
 	ShinoPrint_SUB( SubScreen, 5*6, 5*12, (u8 *)tbuf, 1, 0, 0);
 
 	sprintf(tbuf, "ROM Size(Used) : %6.2fMB(%6.2fMB)", (float)Devicecapacity / (1024*1024), (float)UsedROMsize / (1024*1024));
@@ -530,11 +524,11 @@ if(savetype == 0) {				// Unknown
 	if(savetype == 0)
 		sprintf(tbuf, "SAVE Type : Unknown");
 	if(savetype == 1)
-		sprintf(tbuf, "SAVE Type : EEPROM %dK(%dByte)", savesize / (1024/8), savesize);
+		sprintf(tbuf, "SAVE Type : EEPROM %dK(%dByte)", (unsigned int)(savesize / (1024/8)), (unsigned int)savesize);
 	if(savetype == 2)
-		sprintf(tbuf, "SAVE Type : EEPROM %dK(%dKByte)", savesize / (1024/8), savesize / 1024);
+		sprintf(tbuf, "SAVE Type : EEPROM %dK(%dKByte)", (unsigned int)(savesize / (1024/8)), (unsigned int)(savesize / 1024));
 	if(savetype == 3)
-		sprintf(tbuf, "SAVE Type : FLASH %dM(%dKByte)", savesize / (1024*1024/8), savesize / 1024);
+		sprintf(tbuf, "SAVE Type : FLASH %dM(%dKByte)", (unsigned int)(savesize / (1024*1024/8)), (unsigned int)(savesize / 1024));
 	ShinoPrint_SUB( SubScreen, 5*6, 7*12+6, (u8 *)tbuf, 1, 0, 0);
 
 	return true;
@@ -638,10 +632,10 @@ int ftp_sel()
 	int	sel;
 	u32	ky;
 	int	yc;
-	int	x, y;
+	// int	x, y;
 
-	y = FILEY;
-	x = 0;
+	// y = FILEY;
+	// x = 0;
 	sel = 0;
 	yc = 0;
 
@@ -801,20 +795,19 @@ void sts_dsp(int n1)
 
 
 void dsp_main() {
-	// char	ct[5];
-	char* ct;
+	char	ct[5];
+	// char* ct;
 
 	DrawBox(MainScreen, 2, 2, 253, 53, RGB15(0,0,0), 0);
 	DrawBox(MainScreen, 3, 3, 252, 52, RGB15(0,0,31), 1);
 	DrawBox(MainScreen, 4, 4, 251, 51, RGB15(31,31,31), 0);
-
-	// ct[0] = _io_dldi & 0xFF;
-	// ct[1] = (_io_dldi >> 8) & 0xFF;
-	// ct[2] = (_io_dldi >> 16) & 0xFF;
-	// ct[3] = (_io_dldi >> 24) & 0xFF;
-	// ct[4] = 0;
 	
-	ct = *io_dldi_data->magicString;
+	ct[0] = io_dldi_data->ioInterface.ioType & 0xFF;
+	ct[1] = (io_dldi_data->ioInterface.ioType >> 8) & 0xFF;
+	ct[2] = (io_dldi_data->ioInterface.ioType >> 16) & 0xFF;
+	ct[3] = (io_dldi_data->ioInterface.ioType >> 24) & 0xFF;
+	ct[4] = 0;
+		
 	sprintf(tbuf, "Slot-2 Cartridge : [ %s ]", ct);
 	ShinoPrint(MainScreen, 11+24, 8, (u8 *)tbuf, RGB15(31,31,31), RGB15(31,31,31), 0);
 //	sprintf(tbuf, "FTP Server IP : %d.%d.%d.%d  Port %d", ini.sv_ip[0], ini.sv_ip[1], ini.sv_ip[2], ini.sv_ip[3], ini.port);
@@ -824,7 +817,7 @@ void dsp_main() {
 
 	if(ini.save == 0)
 		sprintf(tbuf, "Save File Size : Auto");
-	else	sprintf(tbuf, "Save File Size : %dKB", ini.save);
+	else	sprintf(tbuf, "Save File Size : %dKB", (int)ini.save);
 	ShinoPrint(MainScreen, 60, 24, (u8 *)tbuf, RGB15(31,31,31), RGB15(31,31,31), 0);
 
 	if(ini.trim != 0)
@@ -841,8 +834,7 @@ void dsp_main() {
 
 extern	void	setLang(void);
 
-void mainloop(void)
-{
+void mainloop(void) {
 //	FILE	*r4dt;
 	int	cmd;
 	int	fl;
@@ -868,7 +860,7 @@ void mainloop(void)
 	ShinoPrint_SUB( SubScreen, 9*6, 1*12-2, (u8*)"NDS Backup Tool (Slot2)", 0, 0, 0 );
 	ShinoPrint_SUB( SubScreen, 33*6, 12, (u8 *)"v0.33", 0, 0, 0 );
 
-	r4tf = 0;
+	// r4tf = 0;
 //	if(_io_dldi == 0x46543452) {		// R4TF
 //		if((*(vu32*)0x027FFE18) != 0x00000000)
 //			r4tf = 1;
@@ -882,9 +874,10 @@ void mainloop(void)
 	sts_dsp(0);
 	if(!fatInitDefault()) {
 		// _io_dldi = 0;
-		r4tf = 0;
+		// r4tf = 0;
 		err_cnf(1, 2);
-		turn_off(r4tf);
+		// turn_off(r4tf);
+		turn_off(0);
 	}
 
 
@@ -921,6 +914,7 @@ void mainloop(void)
 	FIFOSend(IPC_CMD_KEY_TBL);
 	FIFOSend((u32)keytbl);
 
+
 /********
 	while(1) {
 		while(REG_IPC_FIFO_CR & IPC_FIFO_RECV_EMPTY)
@@ -953,7 +947,7 @@ void mainloop(void)
 
 
 //	WAIT_CR &= 0x77FF;
-
+			
 	if(set_rom() == false) {
 //		FTP_Logoff();
 //		disconnectWifi();
@@ -979,10 +973,10 @@ void mainloop(void)
 	fl = -1;
 	while(cmd != -1) {
 		if(fl != (CMDmode & 2)) {
-	DrawBox(MainScreen, 0, FILEY*12, 255, 191, RGB15(31,31,31), 1);
-	ShinoPrint(MainScreen, 42, 90,  (u8 *)t_msg[2], RGB15(31,31,31), RGB15(0,0,31), 1);
-	ShinoPrint(MainScreen, 42, 102,  (u8 *)t_msg[3], RGB15(31,31,31), RGB15(0,0,31), 1);
-	ShinoPrint(MainScreen, 42, 114, (u8 *)t_msg[2], RGB15(31,31,31), RGB15(0,0,31), 1);
+			DrawBox(MainScreen, 0, FILEY*12, 255, 191, RGB15(31,31,31), 1);
+			ShinoPrint(MainScreen, 42, 90,  (u8 *)t_msg[2], RGB15(31,31,31), RGB15(0,0,31), 1);
+			ShinoPrint(MainScreen, 42, 102,  (u8 *)t_msg[3], RGB15(31,31,31), RGB15(0,0,31), 1);
+			ShinoPrint(MainScreen, 42, 114, (u8 *)t_msg[2], RGB15(31,31,31), RGB15(0,0,31), 1);
 			if(CMDmode == 2) {
 				numFiles = SD_FileList(1);
 				fl = 2;
@@ -1010,12 +1004,11 @@ void mainloop(void)
 
 }
 
-#define BG_256_COLOR   (BIT(7))
-
 //---------------------------------------------------------------------------------
 int main(void) {
 //---------------------------------------------------------------------------------
-
+	defaultExceptionHandler();
+	
 	int	i;
 
   // vramSetMainBanks(VRAM_A_LCD ,  VRAM_B_LCD  , VRAM_C_SUB_BG, VRAM_D_MAIN_BG  );
@@ -1063,8 +1056,7 @@ int main(void) {
 	//consoleInit() is a lot more flexible but this gets you up and running quick
 //	consoleInitDefault((u16*)SCREEN_BASE_BLOCK_SUB(31), (u16*)CHAR_BASE_BLOCK_SUB(0), 16);
 	swiWaitForVBlank();
-	swiWaitForVBlank();
-	sysSetBusOwners(BUS_OWNER_ARM9,BUS_OWNER_ARM9);
+	sysSetBusOwners(BUS_OWNER_ARM9, BUS_OWNER_ARM9);
 
 
 //	iprintf("%s\n%s\n%s\n\n", ROMTITLE, ROMVERSION, ROMDATE);

@@ -1,12 +1,13 @@
 #include <nds.h>
 #include <stdlib.h>
 #include <string.h>
+#include <nds/card.h>
 
 #include "CardRead.h"
 
 
 // Todo use libnds current reg defines - Apache Thunder
-#define CARD_CR1       (*(vu16*)0x040001A0)
+/*#define CARD_CR1       (*(vu16*)0x040001A0)
 #define CARD_CR1H      (*(vu8*)0x040001A1)
 #define CARD_EEPDATA   (*(vu8*)0x040001A2)
 #define CARD_CR2       (*(vu32*)0x040001A4)
@@ -16,7 +17,18 @@
 
 #define CARD_BUSY       (1<<31)
 #define CARD_DATA_READY (1<<23)
-//
+//*/
+
+#define CARD_CR1       REG_AUXSPICNT
+#define CARD_CR1H      REG_AUXSPICNTH
+#define CARD_EEPDATA   REG_AUXSPIDATA
+#define CARD_CR2       REG_ROMCTRL
+#define CARD_COMMAND   REG_CARD_COMMAND
+#define CARD_DATA_RD   REG_CARD_DATA_RD
+
+// #define CARD_BUSY       (1<<31)
+// #define CARD_DATA_READY (1<<23)
+
 
 u32	kkkkk;
 u32	llll;
@@ -34,7 +46,7 @@ u32	EncSeed;
 // 03809514 header
 
 u32	chip_id;
-u32	gamecode;
+u32	gameID;
 u32	cr2_normal;
 u32	cr2_key1;
 
@@ -44,8 +56,7 @@ extern	char	*key1tbl;
 
 
 
-void Read_Init()
-{
+void Read_Init() {
 	llll = 0xE71F;
 	iiijjj = 1;
 	mmmnnn = 2;
@@ -59,8 +70,7 @@ void Read_Init()
 }
 
 
-int Read_dummy()
-{
+int Read_dummy() {
 	int	s;
 	vu32	data;
 
@@ -88,13 +98,14 @@ int Read_dummy()
 		}
 	} while(CARD_CR2 & CARD_BUSY);
 
+	if (data == 0) { }
+
 	return(s);
 
 }
 
 
-int Read_Header(u8* header)
-{
+int Read_Header(u8* header) {
 	int	s;
 	u32	data;
 	u32	*buf;
@@ -127,7 +138,7 @@ int Read_Header(u8* header)
 	} while(CARD_CR2 & CARD_BUSY);
 
 
-	gamecode = *((u32*)(header + 0x0C));
+	gameID = *((u32*)(header + 0x0C));
 	EncSeed = (u32)(header[0x13] & 0x07);
 //	cr2_normal = *((u32*)(header + 0x60));
 //	cr2_key1 = *((u32*)(header + 0x64));
@@ -141,8 +152,7 @@ int Read_Header(u8* header)
 	return(s);
 }
 
-u32 Read_CardID_1()
-{
+u32 Read_CardID_1() {
 	while(CARD_CR2 & CARD_BUSY);
 
 	CARD_CR1H = 0xC0;
@@ -165,8 +175,7 @@ u32 Read_CardID_1()
 }
 
 
-bool Act_Key1()
-{
+bool Act_Key1() {
 
 	while(CARD_CR2 & CARD_BUSY);
 
@@ -192,14 +201,13 @@ bool Act_Key1()
 //====================================================
 
 
-void Act_Key2()
-{
+void Act_Key2() {
 	u32	cmd1, cmd2;
 
 
 	cmd1 = (mmmnnn << 20) | kkkkk;
 	cmd2 = 0x40000000 | (llll << 12) | (mmmnnn >> 12);
-	Key1_cmd(cmd1, cmd2, gamecode, (u8*)key1tbl);
+	Key1_cmd(cmd1, cmd2, gameID, (u8*)key1tbl);
 	wait_TM1(0x05);
 
 	enc_key2(mmmnnn, key2tbl[EncSeed]);
@@ -216,14 +224,13 @@ void Act_Key2()
 	kkkkk &= 0xFFFFF;
 }
 
-u32 Read_CardID_2()
-{
+u32 Read_CardID_2() {
 	u32	cmd1, cmd2;
 	u32	data;
 
 	cmd1 = (iiijjj << 20) | kkkkk;
 	cmd2 = 0x10000000 | (llll << 12) | (iiijjj >> 12);
-	Key1_cmd(cmd1, cmd2, gamecode, (u8*)key1tbl);
+	Key1_cmd(cmd1, cmd2, gameID, (u8*)key1tbl);
 	wait_TM1(0x05);
 
 	if(chip_id < 0x80000000) {
@@ -245,8 +252,7 @@ u32 Read_CardID_2()
 
 
 
-int Read_SData(u8* dbuf, u32 addr)
-{
+int Read_SData(u8* dbuf, u32 addr) {
 	u32	cmd1, cmd2;
 	int	s;
 	u32	data;
@@ -255,7 +261,7 @@ int Read_SData(u8* dbuf, u32 addr)
 
 	cmd1 = (iiijjj << 20) | kkkkk;
 	cmd2 = 0x20000000 | addr | (iiijjj >> 12);
-	Key1_cmd(cmd1, cmd2, gamecode, (u8*)key1tbl);
+	Key1_cmd(cmd1, cmd2, gameID, (u8*)key1tbl);
 	wait_TM1(0x05);
 
 
@@ -300,14 +306,13 @@ int Read_SData(u8* dbuf, u32 addr)
 }
 
 
-void Data_Mode()
-{
+void Data_Mode() {
 	u32	cmd1, cmd2;
 
 
 	cmd1 = (iiijjj << 20) | kkkkk;
 	cmd2 = 0xA0000000 | (llll << 12) | (iiijjj >> 12);
-	Key1_cmd(cmd1, cmd2, gamecode, (u8*)key1tbl);
+	Key1_cmd(cmd1, cmd2, gameID, (u8*)key1tbl);
 	wait_TM1(0x05);
 
 	enc_key2(mmmnnn, key2tbl[EncSeed]);
@@ -328,8 +333,7 @@ void Data_Mode()
 
 
 
-int Read_Data(u8* dbuf, u32 addr)
-{
+int Read_Data(u8* dbuf, u32 addr) {
 	int	s;
 	u32	data;
 	u32	*buf;
@@ -367,8 +371,7 @@ int Read_Data(u8* dbuf, u32 addr)
 	return(s);
 }
 
-u32 Read_CardID_3()
-{
+u32 Read_CardID_3() {
 	while(CARD_CR2 & CARD_BUSY);
 
 	CARD_CR1H = 0xC0;
@@ -390,23 +393,18 @@ u32 Read_CardID_3()
 }
 
 
-u32	Rom_Read(int type, u8* header, u8* sc1)
-{
+u32	Rom_Read(int type, u8* header, u8* sc1) {
 	u32	id, id2, id3;
 	u32	i;
 	u8	*ptr;
 
-	if(type == 0) {
-		Read_Init();
-	}
-
+	if(type == 0)Read_Init();
+	
 	Read_dummy();
 
 	id = Read_CardID_1();
 
-	if(type == 0) {
-		Read_dummy();
-	}
+	if(type == 0)Read_dummy();
 
 	wait_TM1(0x0A);
 
@@ -415,8 +413,7 @@ u32	Rom_Read(int type, u8* header, u8* sc1)
 
 	Act_Key1();
 
-	if(id == 0 || id == 0xFFFFFFFF)
-		return(0xFFFFFFFF);
+	if(id == 0 || id == 0xFFFFFFFF)return(0xFFFFFFFF);
 
 	Act_Key2();
 	id2 = Read_CardID_2();
@@ -436,7 +433,7 @@ u32	Rom_Read(int type, u8* header, u8* sc1)
 	id3 = Read_CardID_3();
 	if(id != id3)	return(0xFFFFFFFF);
 
-	encryObj(gamecode, sc1, (u8*)key1tbl);
+	encryObj(gameID, sc1, (u8*)key1tbl);
 
 	return(id);
 }

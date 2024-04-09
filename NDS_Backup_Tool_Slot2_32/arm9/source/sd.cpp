@@ -30,9 +30,6 @@ extern uint16* SubScreen;
 //}
 //#endif
 
-
-
-
 struct	ini_file	ini;
 struct	SD_File	fs[200];
 
@@ -129,7 +126,6 @@ void SD_ini() {
 
 }
 
-
 extern	char	tbuf[];
 
 int SD_FileList(int type) {
@@ -159,7 +155,8 @@ int SD_FileList(int type) {
 
 
 	num = 0;
-	FAT_FileType = FAT_FindFirstFile(tbuf);
+	// FAT_FileType = FAT_FindFirstFile(tbuf);
+	FAT_FileType = FindFirstFile(tbuf);
 	while(FAT_FileType != FAT_FT_END) {
 		if(FAT_FileType == FAT_FT_FILE) {
 			flen = strlen(tbuf);
@@ -178,5 +175,4 @@ int SD_FileList(int type) {
 	return(num);*/
 
 }
-
 

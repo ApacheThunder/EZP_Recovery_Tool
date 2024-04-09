@@ -11,8 +11,7 @@ char	*barmsg[5];
 char	*t_msg[20];
 char	*stsmsg[4];
 
-
-static	char	*errmsg_j[14] = {
+const	char*	errmsg_j[14] = {
 			"(A):確認",					// 0
 			"FATの初期化に失敗しました",			// 1
 			"適切なDLDIパッチを行ってください",		// 2
@@ -29,7 +28,7 @@ static	char	*errmsg_j[14] = {
 			"",		// 13
 };
 
-static	char	*errmsg_e[14] = {
+static const	char*	errmsg_e[14] = {
 			"(A):Confirm",					// 0
 			"FAT initialization failed.",			// 1
 			"Please apply the appropriate DLDI Patch.",	// 2
@@ -47,7 +46,7 @@ static	char	*errmsg_e[14] = {
 };
 
 
-static	char	*cnfmsg_j[11] = {
+static const	char*	cnfmsg_j[11] = {
 			"(A):ＯＫ, (B):終了",				// 0
 			"(A):実行, (B):取消",				// 1
 			"Slot-1から現在のカードを抜いて",		// 2
@@ -61,7 +60,7 @@ static	char	*cnfmsg_j[11] = {
 			"",		// 10
 };
 
-static	char	*cnfmsg_e[11] = {
+static const	char*	cnfmsg_e[11] = {
 			"(A):OK, (B):Exit",				// 0
 			"(A):Run, (B):Cancel",				// 1
 			"Please pull out a present card",		// 2
@@ -76,7 +75,7 @@ static	char	*cnfmsg_e[11] = {
 };
 
 
-static	char	*barmsg_j[5] = {
+static const	char*	barmsg_j[5] = {
 			"　Save Backup...  ",				// 0
 			"  Save Restore... ",				// 1
 			"ファイルを検索中..",				// 2
@@ -84,7 +83,7 @@ static	char	*barmsg_j[5] = {
 			"　 Rom Backup...  ",				// 4
 };
 
-static	char	*barmsg_e[5] = {
+static const	char*	barmsg_e[5] = {
 			"　Save Backup...  ",				// 0
 			"  Save Restore... ",				// 1
 			" File searching.. ",				// 2
@@ -94,7 +93,7 @@ static	char	*barmsg_e[5] = {
 
 
 
-static	char	*t_msg_j[20] = {
+static const	char*	t_msg_j[20] = {
 			"                            ",			// 0
 			" == ファイルがありません == ",			// 1
 			"                            ",			// 2
@@ -117,7 +116,7 @@ static	char	*t_msg_j[20] = {
 			""
 };
 
-static	char	*t_msg_e[20] = {
+static const	char*	t_msg_e[20] = {
 			"                          ",			// 0
 			"  ==  File not found  ==  ",			// 1
 			"                            ",			// 2
@@ -141,14 +140,14 @@ static	char	*t_msg_e[20] = {
 };
 
 
-static	char	*stsmsg_j[4] = {
+static const	char*	stsmsg_j[4] = {
 			"FATの初期化中....",
 			"",
 			"",
 			"",
 };
 
-static	char	*stsmsg_e[4] = {
+static const	char*	stsmsg_e[4] = {
 			"FAT Initialize....",
 			"",
 			"",
@@ -156,8 +155,7 @@ static	char	*stsmsg_e[4] = {
 
 };
 
-void setLangMsg()
-{
+void setLangMsg() {
 	u32	UserLang = 0;
 	int	i;
 
@@ -165,29 +163,18 @@ void setLangMsg()
 	UserLang = PersonalData->language;
 
 	if(UserLang != 0) {
-		for(i = 0; i < 14; i++)
-			errmsg[i] = errmsg_e[i];
-		for(i = 0; i < 11; i++)
-			cnfmsg[i] = cnfmsg_e[i];
-		for(i = 0; i < 5; i++)
-			barmsg[i] = barmsg_e[i];
-		for(i = 0; i < 20; i++)
-			t_msg[i] = t_msg_e[i];
-		for(i = 0; i < 4; i++)
-			stsmsg[i] = stsmsg_e[i];
+		for(i = 0; i < 14; i++)errmsg[i] = (char*)errmsg_e[i];
+		for(i = 0; i < 11; i++)cnfmsg[i] = (char*)cnfmsg_e[i];
+		for(i = 0; i < 5; i++)barmsg[i] = (char*)barmsg_e[i];
+		for(i = 0; i < 20; i++)t_msg[i] = (char*)t_msg_e[i];
+		for(i = 0; i < 4; i++)stsmsg[i] = (char*)stsmsg_e[i];
 		return;
 	}
 
-	for(i = 0; i < 14; i++)
-		errmsg[i] = errmsg_j[i];
-	for(i = 0; i < 11; i++)
-		cnfmsg[i] = cnfmsg_j[i];
-	for(i = 0; i < 5; i++)
-		barmsg[i] = barmsg_j[i];
-	for(i = 0; i < 20; i++)
-		t_msg[i] = t_msg_j[i];
-	for(i = 0; i < 4; i++)
-		stsmsg[i] = stsmsg_j[i];
-
+	for(i = 0; i < 14; i++)errmsg[i] = (char*)errmsg_j[i];
+	for(i = 0; i < 11; i++)cnfmsg[i] = (char*)cnfmsg_j[i];
+	for(i = 0; i < 5; i++)barmsg[i] = (char*)barmsg_j[i];
+	for(i = 0; i < 20; i++)t_msg[i] = (char*)t_msg_j[i];
+	for(i = 0; i < 4; i++)stsmsg[i] = (char*)stsmsg_j[i];
 }
 

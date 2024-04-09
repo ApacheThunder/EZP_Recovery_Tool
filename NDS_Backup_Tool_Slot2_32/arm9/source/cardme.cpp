@@ -95,10 +95,11 @@ int cardmeGetType(void)
 	u8 c00;
 	u8 c05;
 	u8 c9f;
-	u8 c03;
+	// u8 c03;
 	
 		WAIT_CR &= ~0x0880;	// DS Card access ARM9:bit11=0   GBA Cart access ARM9:bit7=0
-	c03=cardmeCMD(0x03,0);
+	// c03=cardmeCMD(0x03,0);
+	cardmeCMD(0x03,0);
 	c05=cardmeCMD(0x05,0);
 	c9f=cardmeCMD(0x9f,0);
 	c00=cardmeCMD(0x00,0);

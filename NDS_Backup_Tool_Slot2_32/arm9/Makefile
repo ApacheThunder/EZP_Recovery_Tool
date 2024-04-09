@@ -28,7 +28,8 @@ STATICLIBS	:=
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:= 	-mthumb -mthumb-interwork -march=armv5te -mtune=arm946e-s
+# ARCH	:= 	-mthumb -mthumb-interwork -march=armv5te -mtune=arm946e-s
+ARCH	:=	-mthumb-interwork
 
 CFLAGS  :=	-g -Wall -O3 \
             $(ARCH) $(INCLUDE) -DARM9
@@ -39,7 +40,9 @@ LDFLAGS   = -specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS := -lfat -ldswifi9 -lnds329
+# LIBS := -lfat -ldswifi9 -lnds9
+# disable Wifi lib. It's not being used in this build
+LIBS := -lfat -lnds9
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
