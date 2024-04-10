@@ -7,8 +7,7 @@
 #include "unicode_u2l_bin.h"
 
 
-void Unicode2Local(u16 *srcstr, u8 *dststr, int len)
-{
+void Unicode2Local(u16 *srcstr, u8 *dststr, int len) {
 //	u16	uni[128];
 //	u16	uc;
 	u16	dt;

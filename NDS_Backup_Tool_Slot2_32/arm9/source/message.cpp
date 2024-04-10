@@ -95,7 +95,8 @@ static const	char*	barmsg_e[5] = {
 
 static const	char*	t_msg_j[20] = {
 			"                            ",			// 0
-			" == ファイルがありません == ",			// 1
+//			" == ファイルがありません == ",			// 1
+			" ==    利用不可    == ",			// 1
 			"                            ",			// 2
 			" == ファイルリスト取得中 == ",			// 3
 			"(A):指定したSAVファイルの内容を更新    ",	// 4
@@ -118,7 +119,8 @@ static const	char*	t_msg_j[20] = {
 
 static const	char*	t_msg_e[20] = {
 			"                          ",			// 0
-			"  ==  File not found  ==  ",			// 1
+			// "  ==  File not found  ==  ",			// 1
+			"   ==  Not available  ==  ",			// 1
 			"                            ",			// 2
 			" == Reading of file list == ",			// 3
 			"(A):Specified SAV file is updated.    ",	// 4

@@ -256,7 +256,6 @@ int RomBK_upd(char *name)
 		fwrite((char *)romsc2, len, 1, ndsFile);
 	}
 
-
 	dsp_bar(4, 100);
 
 	fclose(ndsFile);

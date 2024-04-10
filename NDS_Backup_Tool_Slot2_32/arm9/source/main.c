@@ -80,7 +80,7 @@ char	*romsc2;
 char	tbuf[256];
 
 
-#define IPC_CMD_GBAMODE  1
+/*#define IPC_CMD_GBAMODE  1
 #define IPC_CMD_TURNOFF  9
 // #define IPC_CMD_SR_R4TF 11
 #define IPC_CMD_SR_DLMS 12
@@ -89,16 +89,11 @@ char	tbuf[256];
 
 #define IPC_CMD_KEY_TBL  0x20
 
-void Vblank()
-{
-}
+void Vblank() { }
 
-void FIFOInit() {
-	REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_SEND_CLEAR;
-}
+void FIFOInit() { REG_IPC_FIFO_CR = IPC_FIFO_ENABLE | IPC_FIFO_SEND_CLEAR; }
 
-
-void FIFOSend(u32 val) { REG_IPC_FIFO_TX = val; }
+void FIFOSend(u32 val) { REG_IPC_FIFO_TX = val; }*/
 
 
 
@@ -121,7 +116,7 @@ u32 inp_key() {
 }
 
 
-extern	void	ret_menu9_R4(void);
+// extern void ret_menu9_R4(void);
 
 void turn_off(int cmd) {
 
@@ -341,13 +336,16 @@ void _ftp_dsp(int no, int mod, int x, int y) {
 	dsp[i] = 0;
 *********/
 
-	if(fs[no].filesize < 1000*1000)
+	if(fs[no].filesize < 1000*1000) {
 		sprintf(tbuf, " %-31s %6.2f KB", dsp, (float)fs[no].filesize / 1024);
-	else	sprintf(tbuf, " %-31s %6.2f MB", dsp, (float)fs[no].filesize / (1024*1024));
-
+	} else {
+		sprintf(tbuf, " %-31s %6.2f MB", dsp, (float)fs[no].filesize / (1024*1024));
+	}
 	if(mod == 1) {
 		ShinoPrint( MainScreen, x*6, y*12, (u8 *)tbuf, RGB15(31,0,0), RGB15(0,0,31), 1);
-	} else	ShinoPrint( MainScreen, x*6, y*12, (u8 *)tbuf, RGB15(0,0,0), RGB15(31,31,31), 1);
+	} else { 
+		ShinoPrint( MainScreen, x*6, y*12, (u8 *)tbuf, RGB15(0,0,0), RGB15(31,31,31), 1); 
+	}
 }
 
 
@@ -431,7 +429,7 @@ bool set_rom(bool forcePause) {
 		if(cnf_inp(0, 2, 3) & KEY_B)return false;
 	}
 		
-	romID = Rom_Read(0, (u8*)romhead, (u8*)romsc1);;
+	romID = Rom_Read(0, (u8*)romhead, (u8*)romsc1);
 	while(romID == 0xFFFFFFFF) {
 		if(cnf_inp(0, 7, 8) & KEY_B)return false;
 
@@ -745,8 +743,7 @@ int ftp_sel() {
 				RomBK_new(name);
 				sprintf(tbuf, "File Name : %s", name);
 				if(cnf_inp(1, -1, 4) & KEY_A) {
-					if(!RomBK_upd(name))
-						err_cnf(7, 8);
+					if(!RomBK_upd(name))err_cnf(7, 8);
 					cmd = 1;
 					break;
 				}
@@ -798,7 +795,8 @@ void dsp_main() {
 	DrawBox(MainScreen, 4, 4, 251, 51, RGB15(31,31,31), 0);
 	
 	if (isDSiMode()) {
-		sprintf(tbuf, "Slot-2 Cartridge : [ DSI SD ]");
+		// sprintf(tbuf, "Slot-2 Cartridge : [ DSI SD ]");
+		sprintf(tbuf, "    TWL Mode (DSi/3DS SD)    ");
 	} else {
 		ct[0] = io_dldi_data->ioInterface.ioType & 0xFF;
 		ct[1] = (io_dldi_data->ioInterface.ioType >> 8) & 0xFF;
