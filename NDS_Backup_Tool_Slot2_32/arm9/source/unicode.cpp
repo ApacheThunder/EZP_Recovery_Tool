@@ -4,8 +4,9 @@
 #include <NDS.h>
 
 #include "unicode.h"
-#include "unicode_u2l_bin.h"
+// #include "unicode_u2l_bin.h"
 
+extern u16 unicode_u2l_bin[];
 
 void Unicode2Local(u16 *srcstr, u8 *dststr, int len) {
 //	u16	uni[128];
@@ -13,7 +14,8 @@ void Unicode2Local(u16 *srcstr, u8 *dststr, int len) {
 	u16	dt;
 	u16	*uni;
 
-	uni = (u16*)unicode_u2l_bin + 2;
+	// uni = (u16*)unicode_u2l_bin + 2;
+	uni = unicode_u2l_bin + 2;
 //	UTF82Unicode(srcstr, uni);
 //  	uc = (*srcstr) + (*(srcstr+1) << 8);
 	while(*srcstr != 0) {

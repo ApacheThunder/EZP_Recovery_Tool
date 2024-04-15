@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "read_card.h"
+
 
 //#include "ftp.h"
 //#include "CardRead.h"
@@ -17,6 +19,7 @@ extern	char	Gamecode[5];
 extern	char	RomVer;
 extern	u32	Devicecapacity;
 extern	u32	UsedROMsize;
+extern bool useNewCardlib;
 
 extern	int	savetype;
 extern	u32	savesize;
@@ -42,8 +45,7 @@ extern "C" {
 }
 
 
-int SaveBK_upd(char *name)
-{
+int SaveBK_upd(char *name) {
 
 	FILE	*savFile;
 //	int	ret;
@@ -88,8 +90,7 @@ int SaveBK_upd(char *name)
 }
 
 
-void SaveBK_new(char *name)
-{
+void SaveBK_new(char *name) {
 
 	int	no;
 
@@ -123,8 +124,7 @@ extern uint16* SubScreen;
 ***/
 
 
-int Save_Rest(char *name)
-{
+int Save_Rest(char *name) {
 
 	FILE	*savFile;
 //	int	ret;
@@ -169,8 +169,7 @@ int Save_Rest(char *name)
 	return true;
 }
 
-int Save_Init()
-{
+int Save_Init() {
 
 	u32	add;
 	int	per;
@@ -205,8 +204,7 @@ int Save_Init()
 }
 
 
-int RomBK_upd(char *name)
-{
+int RomBK_upd(char *name) {
 
 	FILE	*ndsFile;
 
@@ -225,51 +223,75 @@ int RomBK_upd(char *name)
 //		siz = ((siz + 1023) / 1024) * 1024;
 	}
 
-
-	ndsFile = fopen(fname, "wb");
-	if(ndsFile == NULL) {
-		dsp_bar(-1, 0);
-		return false;
-	}
-
-	dsp_bar(4, 0);
-	fwrite((char *)romhead, 512, 1, ndsFile);
-
-	memset((char *)romsc2, 0x00, 0x3e00);
-	add = 0x4000;
-	per = (int)(((u64)add * 100) / siz);
-	dsp_bar(4, per);
-	fwrite((char *)romsc2, 0x3E00, 1, ndsFile);
-
-	add = 0x8000;
-	per = (int)(((u64)add * 100) / siz);
-	dsp_bar(4, per);
-	fwrite((char *)romsc1, 0x4000, 1, ndsFile);
-
-	for(add = 0x8000; add < siz; add += 0x4000) {
-		for(len = 0; len < 0x4000; len += 512) {
-			if(add + len >= siz)	break;
-			Read_Data((u8*)(romsc2 + len), add + len);
+	if(useNewCardlib) {
+		ndsFile = fopen(fname, "wb");
+		if(ndsFile == NULL) {
+			dsp_bar(-1, 0);
+			return false;
 		}
-		per = (int)(((u64)(add + len) * 100) / siz);
+	
+		dsp_bar(4, 0);
+	
+		// Modern card lib builds the header/secure area regions on it's own and provides them if read offsets are in the related regions expected.
+		// Thus offset will be set to 0 for this read operation
+		for(add = 0; add < siz; add += 0x4000) {
+			for(len = 0; len < 0x4000; len += 512) {
+				if(add + len >= siz)break;
+				cardRead(add + len, (u32*)((u8*)(romsc2 + len)), false);
+			}
+			per = (int)(((u64)(add + len) * 100) / siz);
+			dsp_bar(4, per);
+			fwrite((char *)romsc2, len, 1, ndsFile);
+		}
+	
+		dsp_bar(4, 100);
+	
+		fclose(ndsFile);
+		dsp_bar(-1, 0);
+	} else {
+		ndsFile = fopen(fname, "wb");
+		if(ndsFile == NULL) {
+			dsp_bar(-1, 0);
+			return false;
+		}
+	
+		dsp_bar(4, 0);
+		fwrite((char *)romhead, 512, 1, ndsFile);
+	
+		memset((char *)romsc2, 0x00, 0x3e00);
+		add = 0x4000;
+		per = (int)(((u64)add * 100) / siz);
 		dsp_bar(4, per);
-		fwrite((char *)romsc2, len, 1, ndsFile);
+		fwrite((char *)romsc2, 0x3E00, 1, ndsFile);
+	
+		add = 0x8000;
+		per = (int)(((u64)add * 100) / siz);
+		dsp_bar(4, per);
+		fwrite((char *)romsc1, 0x4000, 1, ndsFile);
+	
+		for(add = 0x8000; add < siz; add += 0x4000) {
+			for(len = 0; len < 0x4000; len += 512) {
+				if(add + len >= siz)	break;
+				Read_Data((u8*)(romsc2 + len), add + len);
+			}
+			per = (int)(((u64)(add + len) * 100) / siz);
+			dsp_bar(4, per);
+			fwrite((char *)romsc2, len, 1, ndsFile);
+		}
+	
+		dsp_bar(4, 100);
+	
+		fclose(ndsFile);
+		dsp_bar(-1, 0);
+
+//		if(FTP_FileSize(name) != (int)siz)
+//			return false;
 	}
-
-	dsp_bar(4, 100);
-
-	fclose(ndsFile);
-	dsp_bar(-1, 0);
-
-//	if(FTP_FileSize(name) != (int)siz)
-//		return false;
-
 	return true;
 }
 
 
-void RomBK_new(char *name)
-{
+void RomBK_new(char *name) {
 
 	sprintf(name, "%s_%s%02X.nds", GameTitle, Gamecode, RomVer);
 

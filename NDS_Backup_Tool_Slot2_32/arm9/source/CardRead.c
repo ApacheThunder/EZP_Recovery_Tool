@@ -329,41 +329,10 @@ void Data_Mode() {
 
 
 int Read_Data(u8* dbuf, u32 addr) {
-	int	s;
-	u32	data;
-	u32	*buf;
-
-	while(CARD_CR2 & CARD_BUSY);
-
-	CARD_CR1H = 0xC0;
-	CARD_COMMAND[0] = 0xB7;
-	CARD_COMMAND[1] = (addr >> 24) & 0xFF;
-	CARD_COMMAND[2] = (addr >> 16) & 0xFF;
-	CARD_COMMAND[3] = (addr >> 8) & 0xFF;
-	CARD_COMMAND[4] = addr & 0xFF;
-
-	CARD_COMMAND[5] = 0x00;
-	CARD_COMMAND[6] = 0x00;
-	CARD_COMMAND[7] = 0x00;
-
-	CARD_CR2 = (cr2_normal & 0xF8FFFFFF) | 0xA1406000;
-//	CARD_CR2 = 0xA9407000;
-//	CARD_CR2 = 0xA1586000;
-
-	s = 0;
-	buf = (u32*)dbuf;
-	do {
-		if((CARD_CR2 & CARD_DATA_READY)) {
-			if(s < 0x200) {
-				data = CARD_DATA_RD;
-				*buf = data;
-				buf++;
-				s += 4;
-			}
-		}
-	} while(CARD_CR2 & CARD_BUSY);
-
-	return(s);
+	
+	cardParamCommand (CARD_CMD_DATA_READ, addr, (cr2_normal & 0xF8FFFFFF) | 0xA1406000, (void*)dbuf, 0x200/sizeof(u32));
+	
+	return 1;
 }
 
 u32 Read_CardID_3() {

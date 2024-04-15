@@ -44,21 +44,38 @@ extern	char	*romsc2;
 
 const string NDSFile = ".nds";
 const string SAVFile = ".sav";
+const char* defaultPath = "/NDS_Backup";
+const char* defaultINI = "/NDS_Backup_Tool_Slot2.ini";
+
+extern u8 defaultSettings[];
+extern u8 defaultSettingsEnd[];
 
 void SD_ini() {
-	FILE	*ftpini;
+	FILE *ftpini = NULL;
 	int	len, p, s;
-	char	key[20];
+	char key[20];
 
 	ini.save = 0;
 	ini.trim = 0;
-	strcpy(ini.dir, "/NDS_Backup");
-
-
-	ftpini = fopen("/NDS_Backup_Tool_Slot2.ini", "rb");
-	if(ftpini == NULL) {
+	
+	strcpy(ini.dir, defaultPath);
+	
+	if(access(defaultINI, F_OK) == 0) { 
+		ftpini = fopen(defaultINI, "rb");
+	} else {
+		ftpini = fopen(defaultINI, "wb");
+		if (ftpini) {
+			fwrite(defaultSettings, (defaultSettingsEnd - defaultSettings), 1, ftpini);
+			fclose(ftpini);
+		}
 		// FAT_mkdir(ini.dir);
-		mkdir(ini.dir, 0777);
+		if(access(ini.dir, F_OK) != 0)mkdir(ini.dir, 0777);
+		return;
+	}
+	
+	if (!ftpini) {
+		// FAT_mkdir(ini.dir);
+		if(access(ini.dir, F_OK) != 0)mkdir(ini.dir, 0777);
 		return;
 	}
 
@@ -115,20 +132,18 @@ void SD_ini() {
 				p++;
 			}
 		}
-		if(strcmp(key, "Trim") == 0) {
-			ini.trim = 1;
-		}
-
+				
+		if(strcmp(key, "Trim") == 0)ini.trim = 1;
+		
 		while(p < len) {
 			p++;
-			if(romsc2[p - 1] == 0x0A)
-				break;
+			if(romsc2[p - 1] == 0x0A)break;
 		}
 	}
 
 	fclose(ftpini);
 
-	if(ini.dir[0] != '/')strcpy(ini.dir, "/NDS_Backup");
+	if(ini.dir[0] != '/')strcpy(ini.dir, defaultPath);
 
 	// FAT_mkdir(ini.dir);
 	if(access(ini.dir, F_OK) != 0)mkdir(ini.dir, 0777);

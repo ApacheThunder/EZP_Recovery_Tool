@@ -40,6 +40,9 @@
 #include "maindef.h"
 #include "CardRead.h"
 #include "cardme.h"
+#include "read_card.h"
+
+#define CART_HEADER 0x02FFE000
 
 //#include "linkreset_arm9.h"
 #include "unicode.h"
@@ -55,12 +58,13 @@ extern uint16* SubScreen;
 
 #define BG_256_COLOR   (BIT(7))
 
-char	GameTitle[13];
-char	Gamecode[5];
-char	RomVer;
+char GameTitle[13];
+char Gamecode[5];
+char RomVer;
+
 u32	Devicecapacity;
 u32	UsedROMsize;
-u32	romID;
+u32	romID = 0xFFFFFFFF;
 
 int	savetype;
 u32	savesize;
@@ -69,15 +73,22 @@ int	numFiles = 0;
 
 int	CMDmode = 0;
 
+#ifdef _LegacyCardLib
+	bool useNewCardlib = false;
+#else
+	bool useNewCardlib = true;
+#endif
+	
+
 
 /*extern char keytbl[];
 char	*key1tbl;
 char	*key2tbl;*/
-char	*romhead;
-char	*romsc1;
-char	*romsc2;
+ALIGN(4) char *romhead;
+ALIGN(4) char *romsc1;
+ALIGN(4) char *romsc2;
 
-char	tbuf[256];
+ALIGN(4) char tbuf[256];
 
 
 /*#define IPC_CMD_GBAMODE  1
@@ -429,31 +440,65 @@ bool set_rom(bool forcePause) {
 		if(cnf_inp(0, 2, 3) & KEY_B)return false;
 	}
 		
-	romID = Rom_Read(0, (u8*)romhead, (u8*)romsc1);
-	while(romID == 0xFFFFFFFF) {
-		if(cnf_inp(0, 7, 8) & KEY_B)return false;
-
-		romID = Rom_Read(1, (u8*)romhead, (u8*)romsc1);
+	if(useNewCardlib) {
+		romID = 0xFFFFFFFF;
+	
+		while(romID == 0xFFFFFFFF) {
+			if (cardInit((sNDSHeaderExt*)CART_HEADER) != ERR_NONE) { romID = 0xFFFFFFFF; } else { romID = cardGetId(); }
+			if (romID != 0xFFFFFFFF)break;
+			if(cnf_inp(0, 7, 8) & KEY_B)return false;
+		}
+		
+		if ((((sNDSHeaderExt*)CART_HEADER)->unitCode > 0) && !isDSiMode()) {
+			u16 cachedHeaderCRC = ((sNDSHeaderExt*)CART_HEADER)->headerCRC16;
+			if (cnf_inp(0, 10, 11) & KEY_B)return false;
+			while(true) {
+				if (switchToTwlBlowfish((sNDSHeaderExt*)CART_HEADER) == cachedHeaderCRC) {
+					break;
+				} else {
+					twlBlowfish = false; // set this to false to force switchToTwlBlowfish running a second time.
+					if(cnf_inp(0, 7, 8) & KEY_B)return false;
+				}
+			}
+		}
+	} else {
+		romID = Rom_Read(0, (u8*)romhead, (u8*)romsc1);
+		REDO:
+		while (romID == 0xFFFFFFFF) {
+			if(cnf_inp(0, 7, 8) & KEY_B)return false;
+			romID = Rom_Read(1, (u8*)romhead, (u8*)romsc1);
+		}
+		
+		if (((sNDSHeaderExt*)romhead)->unitCode > 0) {
+			if(cnf_inp(0, 12, 8) & KEY_B)return false;
+			romID = 0xFFFFFFFF;
+			romID = Rom_Read(1, (u8*)romhead, (u8*)romsc1);
+			goto REDO;
+		}
 	}
 
 	for(i = 0; i < 12; i++) {
-		if((romhead[i] >= 0x30 && romhead[i] <= 0x39) || (romhead[i] >= 0x41 && romhead[i] <= 0x5A))
+		if((romhead[i] >= 0x30 && romhead[i] <= 0x39) || (romhead[i] >= 0x41 && romhead[i] <= 0x5A)) {
 			GameTitle[i] = romhead[i];
-		else	GameTitle[i] = '_';
+		} else {
+			GameTitle[i] = '_';
+		}
 	}
 	GameTitle[i] = 0;
 	for(i = 11; i >=0; i--) {
-		if(GameTitle[i] != '_')
-			break;
+		if(GameTitle[i] != '_')break;
 	}
-	if(i != 0)	GameTitle[i+1] = 0;
-
+	
+	if(i != 0)GameTitle[i+1] = 0;
 
 	for(i = 0; i < 4; i++) {
-		if((romhead[i+0x0C] >= 0x30 && romhead[i+0x0C] <= 0x39) || (romhead[i+0x0C] >= 0x41 && romhead[i+0x0C] <= 0x5A))
+		if((romhead[i+0x0C] >= 0x30 && romhead[i+0x0C] <= 0x39) || (romhead[i+0x0C] >= 0x41 && romhead[i+0x0C] <= 0x5A)) {
 			Gamecode[i] = romhead[i+0x0C];
-		else	Gamecode[i] = '_';
+		} else {
+			Gamecode[i] = '_';
+		}
 	}
+	
 	Gamecode[i] = 0;
 
 	RomVer = romhead[0x1E];
@@ -462,10 +507,13 @@ bool set_rom(bool forcePause) {
 	UsedROMsize = *((u32*)(romhead + 0x80));
 
 	savetype = cardmeGetType();
+	
 	if(savetype > 0) {
 		savesize = cardmeSize(savetype);
 		if(savesize == 0)	savetype = 0;
-	} else	savesize = 0;
+	} else {
+		savesize = 0;
+	}
 
 
 ////////////////////////////////////////
@@ -796,7 +844,7 @@ void dsp_main() {
 	
 	if (isDSiMode()) {
 		// sprintf(tbuf, "Slot-2 Cartridge : [ DSI SD ]");
-		sprintf(tbuf, "    TWL Mode (DSi/3DS SD)    ");
+		sprintf(tbuf, "    TWL Mode (DSi/3DS SD)");
 	} else {
 		ct[0] = io_dldi_data->ioInterface.ioType & 0xFF;
 		ct[1] = (io_dldi_data->ioInterface.ioType >> 8) & 0xFF;
@@ -841,14 +889,6 @@ void mainloop(void) {
 	TIMER1_DATA = 0;
 	TIMER1_CR = TIMER_ENABLE | TIMER_CASCADE | TIMER_DIV_1;
 
-	// keytbl = (char *)malloc(0x1200);
-	/*key2tbl = keytbl + 0x2A;
-	key1tbl = keytbl + 0x30;*/
-	romhead = (char *)malloc(0x200);
-	romsc1 = (char *)malloc(0x4000);
-	romsc2 = (char *)malloc(0x4000);
-
-
 	keysSetRepeat(20, 6);		// def. 60, 30 (delay, repeat)
 
 	DrawBox_SUB(SubScreen, 20, 3, 235, 27, 1, 0);
@@ -869,6 +909,7 @@ void mainloop(void) {
 	setLangMsg();
 
 	sts_dsp(0);
+	
 	if(!fatInitDefault()) {
 		// _io_dldi = 0;
 		// r4tf = 0;
@@ -876,6 +917,19 @@ void mainloop(void) {
 		// turn_off(r4tf);
 		turn_off(0);
 	}
+
+	SD_ini();
+			
+	// if (!isDSiMode())useNewCardlib = false;
+	// if (ini.cardLib != 1) {	useNewCardlib = true; } else { useNewCardlib = false; }
+
+	// keytbl = (char *)malloc(0x1200);
+	/*key2tbl = keytbl + 0x2A;
+	key1tbl = keytbl + 0x30;*/
+	if (useNewCardlib) { romhead = (char*)CART_HEADER; } else {	romhead = (char *)malloc(0x200); }
+	romsc1 = (char *)malloc(0x4000);
+	romsc2 = (char *)malloc(0x4000);
+
 
 //	if((_io_dldi == 0x46543452) && (r4tf == 0)) {		// R4TF
 //		r4dt = fopen("/_DS_MENU.DAT", "rb");
@@ -921,7 +975,7 @@ void mainloop(void) {
 //	WAIT_CR &= 0x77FF;
 
 //	FTP_ini();
-	SD_ini();
+	// SD_ini(); Doing this sooner to set cardLib type
 	dsp_main();
 
 /*********
@@ -952,7 +1006,7 @@ void mainloop(void) {
 //		disconnectWifi();
 
 		// free(keytbl);
-		free(romhead);
+		if (!useNewCardlib)free(romhead);
 		free(romsc1);
 		free(romsc2);
 		turn_off(0);
@@ -994,7 +1048,7 @@ void mainloop(void) {
 
 
 	// free(keytbl);
-	free(romhead);
+	if (!useNewCardlib)free(romhead);
 	free(romsc1);
 	free(romsc2);
 
@@ -1009,8 +1063,7 @@ int main(void) {
 	
 	int	i;
 
-  // vramSetMainBanks(VRAM_A_LCD ,  VRAM_B_LCD  , VRAM_C_SUB_BG, VRAM_D_MAIN_BG  );
-  vramSetPrimaryBanks(VRAM_A_LCD ,  VRAM_B_LCD  , VRAM_C_SUB_BG, VRAM_D_MAIN_BG  );
+	vramSetPrimaryBanks(VRAM_A_LCD ,  VRAM_B_LCD  , VRAM_C_SUB_BG, VRAM_D_MAIN_BG  );
 	powerOn(POWER_ALL);
 
 	// irqInit();
@@ -1018,13 +1071,13 @@ int main(void) {
 	// irqEnable(IRQ_VBLANK);
 	// FIFOInit();
 
- videoSetMode(MODE_FB0 | DISPLAY_BG2_ACTIVE);
- videoSetModeSub(MODE_0_2D | DISPLAY_BG0_ACTIVE );
- // SUB_BG0_CR = BG_256_COLOR | BG_MAP_BASE(0) | BG_TILE_BASE(1);
- REG_BG0CNT_SUB = BG_256_COLOR | BG_MAP_BASE(0) | BG_TILE_BASE(1);
- uint16* map1 = (uint16*)BG_MAP_RAM_SUB(0);
- for(i=0;i<(256*192/8/8);i++)	map1[i]=i;
- lcdMainOnTop();
+	videoSetMode(MODE_FB0 | DISPLAY_BG2_ACTIVE);
+	videoSetModeSub(MODE_0_2D | DISPLAY_BG0_ACTIVE );
+	// SUB_BG0_CR = BG_256_COLOR | BG_MAP_BASE(0) | BG_TILE_BASE(1);
+	REG_BG0CNT_SUB = BG_256_COLOR | BG_MAP_BASE(0) | BG_TILE_BASE(1);
+	uint16* map1 = (uint16*)BG_MAP_RAM_SUB(0);
+	for(i=0;i<(256*192/8/8);i++)	map1[i]=i;
+	lcdMainOnTop();
 	ClearBG( MainScreen, RGB15(31,31,31) );
 //	ClearBG( MainScreen, RGB15(0,0,0) );
 
