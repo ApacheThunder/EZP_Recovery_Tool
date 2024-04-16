@@ -334,10 +334,13 @@ void _dsp_clear() {
 #define	FILEY		6
 
 void _ftp_dsp(int no, int mod, int x, int y) {
-//	int	i;
-	char	dsp[40];
+	//	int	i;
+	// char	dsp[40];
+	char* dsp = fs[no].filename;
+	u32 fileSize = fs[no].filesize;
+	
+	// Unicode2Local(fs[no].uniname, (u8*)dsp, 31);
 
-	Unicode2Local(fs[no].uniname, (u8*)dsp, 31);
 /******
 	for(i = 0; i < 31; i++)
 		dsp[i] = fs[no].filename[i];
@@ -346,11 +349,13 @@ void _ftp_dsp(int no, int mod, int x, int y) {
 		dsp[i - 1] = 0;
 	dsp[i] = 0;
 *********/
+	
 
-	if(fs[no].filesize < 1000*1000) {
-		sprintf(tbuf, " %-31s %6.2f KB", dsp, (float)fs[no].filesize / 1024);
+
+	if(fileSize < 1000*1000) {
+		sprintf(tbuf, " %-31s %6.2f KB", dsp, (float)fileSize / 1024);
 	} else {
-		sprintf(tbuf, " %-31s %6.2f MB", dsp, (float)fs[no].filesize / (1024*1024));
+		sprintf(tbuf, " %-31s %6.2f MB", dsp, (float)fileSize / (1024*1024));
 	}
 	if(mod == 1) {
 		ShinoPrint( MainScreen, x*6, y*12, (u8 *)tbuf, RGB15(31,0,0), RGB15(0,0,31), 1);
@@ -366,15 +371,14 @@ void _ftp_sel_dsp(int no, int yc, int mod) {
 	u16	pl, pls;
 	y = FILEY;
 	x = 0;
-	char	dsp[40];
+	char dsp[40];
 
 	if(mod == 0) {
 //		_dsp_clear();
 
 		pl = pls = 1;
 		if(numFiles == 0)	pl = 7;
-		if(savetype < 1)
-			pl = pls = 7;
+		if(savetype < 1)pl = pls = 7;
 		if(CMDmode == 0) {
 			ShinoPrint_SUB( SubScreen, 15*6, 10*12, (u8 *)" Save Backup ", 0, 5, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 11*12+6, (u8 *)t_msg[4], pl, 0, 1);
@@ -402,20 +406,22 @@ void _ftp_sel_dsp(int no, int yc, int mod) {
 
 		strncpy(dsp, ini.dir, 32);
 		dsp[32] = 0;
-		if(CMDmode == 2)
+		if(CMDmode == 2) {
 			sprintf(tbuf, "[%s/] %d NDS", dsp, numFiles);
-		else	sprintf(tbuf, "[%s/] %d SAV", dsp, numFiles);
+		} else	{ 
+			sprintf(tbuf, "[%s/] %d SAV", dsp, numFiles);
+		}
 		ShinoPrint(MainScreen, 0, (FILEY-1)*12-2, (u8 *)tbuf, RGB15(31,31,31), RGB15(0,0,0), 0);
-
 	}
-
-
+	
 	st = no - yc;
 	for(i = 0; i < FILELINE; i++) {
 		if(i + st < numFiles) {
-			if(i == yc)
+			if(i == yc) {
 				_ftp_dsp(i + st, 1, x, y + i);
-			else	_ftp_dsp(i + st, 0, x, y + i);
+			} else {
+				_ftp_dsp(i + st, 0, x, y + i);
+			}
 		}
 	}
 }
@@ -693,9 +699,7 @@ int ftp_sel() {
 
 		ky = keysDown();
 
-		if(numFiles > 0) {
-			_ftp_sel_sub2(ky, &yc, &sel);
-		}
+		if(numFiles > 0)_ftp_sel_sub2(ky, &yc, &sel);
 
 		if(ky & KEY_L) {
 			if(CMDmode > 0) {
@@ -717,7 +721,6 @@ int ftp_sel() {
 			cmd = -1;
 			break;
 		}
-	
 
 		if((ky & KEY_X) || (isDSiMode() && (REG_SCFG_MC == 0x11))) {
 			if (isDSiMode() && (REG_SCFG_MC != 0x10) && (REG_SCFG_MC != 0x11)) { 
@@ -738,11 +741,12 @@ int ftp_sel() {
 
 		if((numFiles > 0) && (ky & KEY_A)) {
 			if((CMDmode == 0) && (savetype > 0)) {
-				Unicode2Local(fs[sel].uniname, (u8*)name, 24);
+				// Unicode2Local(fs[sel].uniname, (u8*)name, 24);
+				strcpy(name, fs[sel].filename);
 				sprintf(tbuf, "File Name : %s", name);
 				if(cnf_inp(1, -1, 5) & KEY_A) {
-					if(!SaveBK_upd(fs[sel].Alias))
-						err_cnf(7, 8);
+					// if(!SaveBK_upd(fs[sel].Alias))
+					if(!SaveBK_upd(fs[sel].filename))err_cnf(7, 8);
 					cmd = 1;
 				}
 				break;
@@ -751,20 +755,22 @@ int ftp_sel() {
 				if(fs[sel].filesize < savesize) {
 					err_cnf(9, 10);
 				} else {
-					Unicode2Local(fs[sel].uniname, (u8*)name, 24);
+					// Unicode2Local(fs[sel].uniname, (u8*)name, 24);
+					strcpy(name, fs[sel].filename);
 					sprintf(tbuf, "File Name : %s", name);
 					if(cnf_inp(1, -1, 6) & KEY_A) {
-						if(!Save_Rest(fs[sel].Alias))
-							err_cnf(7, 8);
+						// if(!Save_Rest(fs[sel].Alias))
+						if(!Save_Rest(fs[sel].filename))err_cnf(7, 8);
 					}
 				}
 			}
 			if(CMDmode == 2) {
-				Unicode2Local(fs[sel].uniname, (u8*)name, 24);
+				// Unicode2Local(fs[sel].uniname, (u8*)name, 24);
+				strcpy(name, fs[sel].filename);
 				sprintf(tbuf, "File Name : %s", name);
 				if(cnf_inp(1, -1, 5) & KEY_A) {
-					if(!RomBK_upd(fs[sel].Alias))
-						err_cnf(7, 8);
+					// if(!RomBK_upd(fs[sel].Alias))
+					if(!RomBK_upd(fs[sel].filename))err_cnf(7, 8);
 					cmd = 1;
 				}
 				break;
@@ -776,16 +782,13 @@ int ftp_sel() {
 				SaveBK_new(name);
 				sprintf(tbuf, "File Name : %s", name);
 				if(cnf_inp(1, -1, 4) & KEY_A) {
-					if(!SaveBK_upd(name))
-						err_cnf(7, 8);
+					if(!SaveBK_upd(name))err_cnf(7, 8);
 					cmd = 1;
 					break;
 				}
 			}
 			if((CMDmode == 1) && (savetype > 0)) {
-				if(cnf_inp(1, 9, 10) & KEY_A) {
-					Save_Init();
-				}
+				if(cnf_inp(1, 9, 13) & KEY_A)Save_Init();
 			}
 			if(CMDmode == 2) {
 				RomBK_new(name);
@@ -895,7 +898,7 @@ void mainloop(void) {
 	DrawBox_SUB(SubScreen, 21, 4, 234, 26, 5, 1);
 	DrawBox_SUB(SubScreen, 22, 5, 233, 25, 0, 0);
 	ShinoPrint_SUB( SubScreen, 9*6, 1*12-2, (u8*)"NDS Backup Tool (Slot2)", 0, 0, 0 );
-	ShinoPrint_SUB( SubScreen, 33*6, 12, (u8 *)"v0.33", 0, 0, 0 );
+	ShinoPrint_SUB( SubScreen, 33*6, 12, (u8 *)"v0.34", 0, 0, 0 );
 
 	// r4tf = 0;
 //	if(_io_dldi == 0x46543452) {		// R4TF

@@ -5,6 +5,7 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -42,13 +43,13 @@ struct	SD_File	fs[200];
 
 extern	char	*romsc2;
 
-const string NDSFile = ".nds";
-const string SAVFile = ".sav";
 const char* defaultPath = "/NDS_Backup";
 const char* defaultINI = "/NDS_Backup_Tool_Slot2.ini";
 
 extern u8 defaultSettings[];
 extern u8 defaultSettingsEnd[];
+
+bool dirEntered = false;
 
 void SD_ini() {
 	FILE *ftpini = NULL;
@@ -153,85 +154,50 @@ void SD_ini() {
 extern	char	tbuf[];
 
 
-static bool nameEndsWith (const string& name, const string ext) {
-	/*if (name.size() == 0) return false;
-	if (name.front() == '.') return false;*/
-	
-	if (strcasecmp(name.c_str() + name.size() - ext.size(), ext.c_str()) == 0) return true;
+bool nameEndsWith (const string& name, const string& extension) {
+
+	if (name.size() == 0) return false;
+	if (name.front() == '.') return false;
+
+	const string ext = extension;
+	if (strcasecmp(name.c_str() + name.size() - ext.size(), ext.c_str()) == 0)return true;
 	return false;
 }
 
-// Todo - Fix this to modern libfat standards - Apache Thunder
 int SD_FileList(int type) {
-	int	num;
+	int	num = 0;
 
-//	FAT_mkdir("/NDS_Backup");
-	// FAT_CWD(ini.dir);
 	if(access(ini.dir, F_OK) != 0)mkdir(ini.dir, 0777);
 	
-	DIR *pdir = opendir(ini.dir);
-	struct dirent *pent;
+	struct stat st;
+	chdir (ini.dir);
 	
-	if (pdir) {
-		while ((pent=readdir(pdir))!=NULL) {
-	    	if(strcmp(".", pent->d_name) == 0 || strcmp("..", pent->d_name) == 0)continue;
-	    	if(pent->d_type != DT_DIR) {
-				bool isValidFile = false;
-				switch (type) {
-					case 0: { 
-						if (nameEndsWith(pent->d_name, ".sav")) { isValidFile = true; } 
-					}break;
-					case 1: { 
-						if (nameEndsWith(pent->d_name, ".nds")) { isValidFile = true; }
-					}break;
-					default: { isValidFile = false; } break;
+	DIR *pdir = opendir (".");
+	
+	const char* EXT;
+	if (type == 0) { EXT = ".SAV"; } else { EXT = ".NDS"; }
+
+	if (pdir != NULL) {
+		while(true) {
+			dirent* pent = readdir(pdir);
+			if(pent == NULL)break;
+						
+			stat(pent->d_name, &st);
+
+			if (((string)pent->d_name).compare(".") != 0 && ((st.st_mode & S_IFMT) != S_IFDIR) && nameEndsWith(pent->d_name, EXT)) {
+				strcpy(fs[num].filename, pent->d_name);
+				FILE *file = fopen(pent->d_name, "rb");
+				if (file) {
+					fseek(file, 0, SEEK_END);
+					fs[num].filesize = ftell(file);
+					fclose(file);
 				}
-				if (isValidFile) {
-					
-					num++;
-				}
+				num++;
+				if (num > 200)return 200;
 			}
 		}
 		closedir(pdir);
-		return num;
-	} else {
-		return 0;
 	}
-	
-	/*u32	flen;
-	char	tn[3];
-
-	u32	FAT_FileType;
-
-	
-	if(type == 0) {
-		tn[0] = 'S';
-		tn[1] = 'A';
-		tn[2] = 'V';
-	} else {
-		tn[0] = 'N';
-		tn[1] = 'D';
-		tn[2] = 'S';
-	}
-
-
-	num = 0;
-	FAT_FileType = FAT_FindFirstFile(tbuf);
-	while(FAT_FileType != FAT_FT_END) {
-		if(FAT_FileType == FAT_FT_FILE) {
-			flen = strlen(tbuf);
-			if((tbuf[flen - 3] == tn[0]) && (tbuf[flen - 2] == tn[1]) && (tbuf[flen - 1] == tn[2])) {
-				FAT_GetLongFilenameUnicode(fs[num].uniname, 256);
-//				FAT_GetLongFilename(fs[numFiles].filename);
-				strcpy(fs[num].Alias, tbuf);
-				fs[num].filesize = FAT_GetFileSize();
-				num++;
-				if(num > 199)	break;
-			}
-		}
-		FAT_FileType=FAT_FindNextFile(tbuf);
-	}
-
-	return(num);*/
+	return num;
 }
 

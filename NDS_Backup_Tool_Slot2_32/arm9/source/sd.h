@@ -8,14 +8,11 @@ struct	ini_file {
 extern	struct	ini_file	ini;
 
 struct	SD_File {
-		char	Alias[13];
-		u16	uniname[256];
-		u32	filesize;
+	u32 filesize;
+	char filename[40];
 };
 
 extern	struct	SD_File	fs[];
-
-
 
 #ifdef __cplusplus
 extern "C" {

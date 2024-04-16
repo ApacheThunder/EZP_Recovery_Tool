@@ -6,7 +6,7 @@
 #include "message.h"
 
 char	*errmsg[14];
-char	*cnfmsg[13];
+char	*cnfmsg[14];
 char	*barmsg[5];
 char	*t_msg[20];
 char	*stsmsg[4];
@@ -125,8 +125,7 @@ static const	char*	t_msg_j[20] = {
 
 static const	char*	t_msg_e[20] = {
 			"                          ",			// 0
-			// "  ==  File not found  ==  ",			// 1
-			"   ==  Not available  ==  ",			// 1
+			"  ==  File not found  ==  ",			// 1
 			"                            ",			// 2
 			" == Reading of file list == ",			// 3
 			"(A):Specified SAV file is updated.    ",	// 4
@@ -167,7 +166,6 @@ void setLangMsg() {
 	u32	UserLang = 0;
 	int	i;
 
-	// UserLang = PersonalData->_user_data.language;
 	UserLang = PersonalData->language;
 
 	if(UserLang != 0) {

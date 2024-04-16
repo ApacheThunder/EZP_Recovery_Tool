@@ -34,8 +34,8 @@ extern	char	*romsc2;
 #define FAT_FT_DIR (2)
 
 
-u8	savebuf[512];
-char	fname[256];
+DTCM_DATA u8	savebuf[512];
+DTCM_DATA char	fname[256];
 
 //extern	u32	arm9fifo;
 extern "C" {
@@ -144,23 +144,43 @@ int Save_Rest(char *name) {
 
 	dsp_bar(1, -1);
 	sprintf(fname, "%s/%s", ini.dir, name);
-	savFile = fopen(fname, "rb");
-	if(savFile == NULL) {
+	
+	if (access(fname, F_OK) != 0) {
 		dsp_bar(-1, 0);
 		return false;
 	}
+	
+	savFile = fopen(fname, "rb");
+	if(!savFile) {
+		dsp_bar(-1, 0);
+		return false;
+	}
+
+	u32 fileLength = 0;
+	
+	fseek(savFile, 0, SEEK_END);
+	fileLength = ftell(savFile);
+	fseek(savFile, 0, SEEK_SET);
+	
+	if(fileLength != savesize) {
+		dsp_bar(-1, 0);
+		return false;
+	}
+	
 
 	for(add = 0; add < savesize; ) {
 		per = (add * 100) / savesize;
 		dsp_bar(1, per);
 		len = savesize - add;
 		if(len > 512)	len = 512;
-		len = fread((char *)savebuf, len, 1, savFile);
+		// len = fread((char *)savebuf, len, 1, savFile);
+		len = fread((char *)savebuf, 1, len, savFile);
 		if(len > 0) {
 			cardmeWriteEeprom(add, savebuf, len, savetype);
 			add += len;
 		}
 	}
+	
 	dsp_bar(1, 100);
 
 	fclose(savFile);
