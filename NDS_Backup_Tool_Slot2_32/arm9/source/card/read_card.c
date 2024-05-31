@@ -48,7 +48,7 @@ static u32 portFlags = 0;
 static u32 headerData[0x1000/sizeof(u32)] = {0};
 // Have switchToTwlBlowfish saves copy of header here after second card init so program can compare it with 
 // first one to ensure proper card reinsert on regular DS consoles.
-static u32 twlHeaderData[0x1000/sizeof(u32)] = {0}; 
+static u32 twlHeaderData[0x1000/sizeof(u32)] = {0};
 static u32 secureArea[CARD_SECURE_AREA_SIZE/sizeof(u32)] = {0};
 static u32 twlSecureArea[CARD_SECURE_AREA_SIZE/sizeof(u32)] = {0};
 static u32 iCardId;

@@ -11,3 +11,4 @@ extern void UTF82Unicode(u8 *srcstr, u16 *dststr);
 #ifdef __cplusplus
 }
 #endif
+

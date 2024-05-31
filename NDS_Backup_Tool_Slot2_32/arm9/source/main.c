@@ -512,32 +512,35 @@ bool set_rom(bool forcePause) {
 	Devicecapacity = (128 << romhead[0x14]) * 1024;
 	UsedROMsize = *((u32*)(romhead + 0x80));
 
-	savetype = cardmeGetType();
-	
+	if (useNewCardlib) { savetype = cardEepromGetType(); } else { savetype = cardmeGetType(); }
+		
 	if(savetype > 0) {
-		savesize = cardmeSize(savetype);
-		if(savesize == 0)	savetype = 0;
+		if (useNewCardlib) { savesize = cardEepromGetSize(savetype); } else { savesize = cardmeSize(savetype); }
+		if(savesize == 0)savetype = 0;
 	} else {
 		savesize = 0;
 	}
+	
 
-
-////////////////////////////////////////
-gc = *((u32*)(romhead + 0x0C)) & 0x00FFFFFF;
-if(savetype == 3) {				// FLASH
-	if(gc == 0x455A41) {		// ZELDA_DS FLASH 4M
-		savesize = 512 * 1024;
+	////////////////////////////////////////
+	gc = *((u32*)(romhead + 0x0C)) & 0x00FFFFFF;
+	
+	/*switch (gc) {
+		case 0x4D5341: { savetype = 3; savesize = (1024 * 1024); }break;	// ASMA - R4 Test
+		case 0x464D41: { savetype = 3; savesize = (1024 * 1024); }break;	// AMFE - M3 DS Real Test
+	}*/
+	
+	if(savetype == 3) {
+		// FLASH
+		switch (gc) {
+			case 0x455A41: { savesize = (512 * 1024); }break;	// ZELDA_DS FLASH 4M
+			case 0x414441: { savesize = (512 * 1024); }break;	// Pokemon_D FLASH 4M
+			case 0x415041: { savesize = (512 * 1024); }break;	// Pokemon_P FLASH 4M
+			// case 0x4A4241: { savesize = (4096 * 1024); }break;	// 32Mbit - Test for dumping EZ Flash Parallel.
+			// case 0x593241: { savesize = (512 * 1024); }break;	// MANIMANE FLASH 4M
+		}
 	}
-	if(gc == 0x414441) {		// Pokemon_D FLASH 4M
-		savesize = 512 * 1024;
-	}
-	if(gc == 0x415041) {		// Pokemon_P FLASH 4M
-		savesize = 512 * 1024;
-	}
-//	if(gc == 0x593241) {		// MANIMANE FLASH 4M
-//		savesize = 512 * 1024;
-//	}
-}
+	
 
 /*****************
 if(savetype == 0) {				// Unknown
@@ -558,8 +561,11 @@ if(savetype == 0) {				// Unknown
 
 	sprintf(tbuf, "Game Title : %s %s %02X", GameTitle, Gamecode, RomVer);
 	ShinoPrint_SUB( SubScreen, 5*6, 4*12, (u8 *)tbuf, 1, 0, 0);
+	// __builtin_bswap32(kangaroo);
+	// sprintf(tbuf, "Chip ID : %02X %02X %02X %02X", (unsigned int)romID & 0xFF, (unsigned int)(romID >> 8) & 0xFF, (unsigned int)(romID >> 16) & 0xFF, (unsigned int)(romID >> 24) & 0xFF);
+	sprintf(tbuf, "Chip ID : %02X %02X %02X %02X", ((u8)(romID >> 24) & 0xFF), ((u8)romID & 0xFF), ((u8)(romID >> 8) & 0xFF), ((u8)(romID >> 16) & 0xFF));
 
-	sprintf(tbuf, "Chip ID : %02X %02X %02X %02X", (unsigned int)romID & 0xFF, (unsigned int)(romID >> 8) & 0xFF, (unsigned int)(romID >> 16) & 0xFF, (unsigned int)(romID >> 24) & 0xFF);
+	
 	ShinoPrint_SUB( SubScreen, 5*6, 5*12, (u8 *)tbuf, 1, 0, 0);
 
 	sprintf(tbuf, "ROM Size(Used) : %6.2fMB(%6.2fMB)", (float)Devicecapacity / (1024*1024), (float)UsedROMsize / (1024*1024));
@@ -898,7 +904,7 @@ void mainloop(void) {
 	DrawBox_SUB(SubScreen, 21, 4, 234, 26, 5, 1);
 	DrawBox_SUB(SubScreen, 22, 5, 233, 25, 0, 0);
 	ShinoPrint_SUB( SubScreen, 9*6, 1*12-2, (u8*)"NDS Backup Tool (Slot2)", 0, 0, 0 );
-	ShinoPrint_SUB( SubScreen, 33*6, 12, (u8 *)"v0.34", 0, 0, 0 );
+	ShinoPrint_SUB( SubScreen, 33*6, 12, (u8 *)"v0.35", 0, 0, 0 );
 
 	// r4tf = 0;
 //	if(_io_dldi == 0x46543452) {		// R4TF

@@ -62,11 +62,10 @@ int SaveBK_upd(char *name) {
 	}
 
 	siz = ini.save * 1024;
-	if(siz < savesize)
-		siz = savesize;
+	if(siz < savesize)siz = savesize;
 
 	for(add = 0; add < savesize; add += 512) {
-		cardmeReadEeprom(add, savebuf, 512, savetype); 
+		if (useNewCardlib) { cardReadEeprom(add, savebuf, 512, savetype); } else { cardmeReadEeprom(add, savebuf, 512, savetype); }
 		per = (add * 100) / siz;
 		dsp_bar(0, per);
 		fwrite((char *)savebuf, 512, 1, savFile);
@@ -137,7 +136,7 @@ int Save_Rest(char *name) {
 		for(add = 0; add < savesize; add += 0x10000) {
 			per = (add * 100) / savesize;
 			dsp_bar(3, per);
-			cardmeSectorErase(add);
+			if (useNewCardlib) { cardEepromSectorErase(add); } else { cardmeSectorErase(add); }
 		}
 		dsp_bar(-1, 0);
 	}
@@ -176,7 +175,7 @@ int Save_Rest(char *name) {
 		// len = fread((char *)savebuf, len, 1, savFile);
 		len = fread((char *)savebuf, 1, len, savFile);
 		if(len > 0) {
-			cardmeWriteEeprom(add, savebuf, len, savetype);
+			if (useNewCardlib) { cardWriteEeprom(add, savebuf, len, savetype); } else { cardmeWriteEeprom(add, savebuf, len, savetype); }
 			add += len;
 		}
 	}
@@ -200,7 +199,7 @@ int Save_Init() {
 		for(add = 0; add < savesize; add += 0x10000) {
 			per = (add * 100) / savesize;
 			dsp_bar(3, per);
-			cardmeSectorErase(add);
+			if (useNewCardlib) { cardEepromSectorErase(add); } else { cardmeSectorErase(add); }
 		}
 		dsp_bar(3, 100);
 		dsp_bar(-1, 0);

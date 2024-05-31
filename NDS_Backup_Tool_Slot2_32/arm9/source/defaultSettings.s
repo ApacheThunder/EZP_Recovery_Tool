@@ -1,5 +1,5 @@
 	.arm
-	.global defaultSettings, defaultSettingsEnd,
+	.global defaultSettings, defaultSettingsEnd
 
 defaultSettings:	.incbin "../include/defaultSettings.bin"
 defaultSettingsEnd:

@@ -112,6 +112,7 @@ int cardmeGetType(void) {
 	if((c00==0xff) &&  (c05 & 0xFD) == 0x00 && (c9f==0x12))return 3;	//	NEW TYPE 3
 	if((c00==0xff) &&  (c05 & 0xFD) == 0x00 && (c9f==0x13))return 3;	//	NEW TYPE 3+ 4Mbit
 	if((c00==0xff) &&  (c05 & 0xFD) == 0x00 && (c9f==0x14))return 3;	//	NEW TYPE 3+ 8Mbit
+	if((c00==0xff) &&  (c05 & 0xFD) == 0x00 && (c9f==0x16))return 3;	//	NEW TYPE 3+ 32Mbit
 	if((c00==0xff) &&  (c05 & 0xFD) == 0x84 && (c9f==0x17))return 3;	//	NEW TYPE 3+ 64Mbit
 
 	//	/* ”»’è•s‰Â */
@@ -384,8 +385,7 @@ int cardmeChipErase(void) {
 
 //	COMMAND Sec.erase 0xD8 
 void cardmeSectorErase(u32 address) {
-//	int i;
-
+		// int i;
 		// set WEL (Write Enable Latch)
 		REG_AUXSPICNT = /*E*/0x8000 | /*SEL*/0x2000 | /*MODE*/0x40;
 		REG_AUXSPIDATA = 0x06; 
@@ -418,6 +418,67 @@ void cardmeSectorErase(u32 address) {
 //        EepromWaitBusy(); 
 		REG_AUXSPICNT = /*MODE*/0x40;
 }
+
+/*void cardmeSectorUnlock(u32 address) {
+		// set WEL (Write Enable Latch)
+		REG_AUXSPICNT = 0x8000 | 0x2000 | 0x40;
+		REG_AUXSPIDATA = 0x06; 
+        EepromWaitBusy();
+
+		REG_AUXSPICNT = 0x40;
+
+		// Individual block unlock command for PUYA flash chip P25Q32SH used in EZP
+		REG_AUXSPICNT = 0x8000 | 0x2000 | 0x40;
+		REG_AUXSPIDATA = 0x39; 
+        EepromWaitBusy();
+        REG_AUXSPIDATA = (address >> 16) & 0xFF; 
+        EepromWaitBusy(); 
+        REG_AUXSPIDATA = (address >> 8) & 0xFF; 
+        EepromWaitBusy(); 
+		REG_AUXSPIDATA = address & 0xFF; 
+        EepromWaitBusy();
+
+		REG_AUXSPICNT = 0x40;
+
+		// wait erase to finish
+		REG_AUXSPICNT = 0x8000 | 0x2000 | 0x40;
+		REG_AUXSPIDATA = 0x05; 
+        EepromWaitBusy();
+
+		do {
+			REG_AUXSPIDATA = 0; 
+			EepromWaitBusy(); 
+        } while (REG_AUXSPIDATA & 0x01);	// WIP (Write In Progress) ?
+		REG_AUXSPICNT = 0x40;
+}
+
+void cardmeChipUnlock() {
+	REG_AUXSPICNT = 0x8000 | 0x2000 | 0x40;
+	REG_AUXSPIDATA = 0x06; 
+    EepromWaitBusy();
+
+	REG_AUXSPICNT = 0x40;
+
+	// Global unlock command for PUYA flash chip P25Q32SH used in EZP
+	REG_AUXSPICNT = 0x8000 | 0x2000 | 0x40;
+	REG_AUXSPIDATA = 0x98; 
+    EepromWaitBusy();
+
+	REG_AUXSPICNT = 0x40;
+
+	// wait programming to finish
+	REG_AUXSPICNT = 0x8000 | 0x2000 | 0x40;
+	REG_AUXSPIDATA = 0x05; 
+    EepromWaitBusy();
+
+	do {
+		REG_AUXSPIDATA = 0; 
+		EepromWaitBusy(); 
+    } while (REG_AUXSPIDATA & 0x01);	// WIP (Write In Progress) ?
+    EepromWaitBusy(); 
+	REG_AUXSPICNT = 0x40;
+}*/
+
 
 
 //	Chip Erase  : clear FLASH MEMORY (TYPE 3 ONLY)

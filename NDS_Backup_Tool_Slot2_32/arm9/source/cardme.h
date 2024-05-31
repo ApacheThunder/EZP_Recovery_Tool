@@ -39,7 +39,9 @@ int cardmeSize(int tp);
 u8 cardmeReadID(int i) ;	//	don't work ??
 u8 cardmeCMD(u8 cmd,int address) ;
 
-void cardmeReadHeader(uint8 * header) ;
+/*void cardmeSectorUnlock(u32 address);
+void cardmeChipUnlock(void);*/
+void cardmeReadHeader(uint8 * header);
 void cardmeWriteEeprom(u32 address, u8 *data, u32 length, u32 addrtype);
 
 #ifdef __cplusplus

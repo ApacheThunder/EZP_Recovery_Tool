@@ -9,7 +9,7 @@ export TARGET := NDS_Backup_Tool_Slot2
 export TOPDIR := $(CURDIR)
 
 export VERSION_MAJOR	:= 0
-export VERSION_MINOR	:= 34
+export VERSION_MINOR	:= 35
 export VERSTRING	:=	$(VERSION_MAJOR).$(VERSION_MINOR)
 
 # GMAE_ICON is the image used to create the game icon, leave blank to use default rule
