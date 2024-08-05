@@ -45,7 +45,7 @@ checkarm9:
 #---------------------------------------------------------------------------------
 $(TARGET).nds : arm7/$(TARGET).elf arm9/$(TARGET).elf
 	@ndstool	-c $@ -7 arm7/$(TARGET).elf -9 arm9/$(TARGET).elf \
-				-b $(CURDIR)/logo32.bmp "EZP Recovery Tool;Version $(VERSTRING)" \
+				-t banner.bin \
 				-g EZPR 01 "EZPRECOVERY" -z 80040000 -u 00030004 -a 00000138 -p 0001 \
 
 data:

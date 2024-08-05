@@ -658,9 +658,9 @@ int ftp_sel() {
 	_ftp_sel_dsp(sel, yc, 0);
 
 	if(numFiles == 0) {
-		ShinoPrint(MainScreen, 42, 90,  (u8 *)t_msg[0], RGB15(31,0,31), RGB15(0,0,31), 1);
-		ShinoPrint(MainScreen, 42, 102, (u8 *)t_msg[1], RGB15(31,0,31), RGB15(0,0,31), 1);
-		ShinoPrint(MainScreen, 42, 114, (u8 *)t_msg[0], RGB15(31,0,31), RGB15(0,0,31), 1);
+		ShinoPrint(MainScreen, 42, 90,  (u8 *)t_msg[0], RGB15(31,31,31), RGB15(15,15,15), 1);
+		ShinoPrint(MainScreen, 42, 102, (u8 *)t_msg[1], RGB15(31,31,31), RGB15(15,15,15), 1);
+		ShinoPrint(MainScreen, 42, 114, (u8 *)t_msg[0], RGB15(31,31,31), RGB15(15,15,15), 1);
 	}
 
 	while(1) {

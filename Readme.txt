@@ -29,3 +29,6 @@ After running this tool with the pin lifted (I don't recommend you attempt to fl
 
 
 Hopefully once EZFlash becomes aware of this tool they may push out a fw update that doesn't lock the chip. Perhaps they will use this program as official method of restoring the card.
+
+
+Credit to Nat (nathaantfm) for helping finding out how to write to config registers to unlock the perticular card I tested this one.
