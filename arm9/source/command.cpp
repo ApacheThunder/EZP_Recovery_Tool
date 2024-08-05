@@ -4,12 +4,6 @@
 #include <string.h>
 #include "read_card.h"
 
-
-//#include "ftp.h"
-//#include "CardRead.h"
-// #include "disc_io.h"
-// #include "gba_nds_fat.h"
-
 #include "cardme.h"
 #include "command.h"
 #include "sd.h"
@@ -61,11 +55,10 @@ int SaveBK_upd(char *name) {
 		return false;
 	}
 
-	siz = ini.save * 1024;
-	if(siz < savesize)siz = savesize;
+	siz = savesize;
 
 	for(add = 0; add < savesize; add += 512) {
-		if (useNewCardlib) { cardReadEeprom(add, savebuf, 512, savetype); } else { cardmeReadEeprom(add, savebuf, 512, savetype); }
+		cardmeReadEeprom(add, savebuf, 512, savetype);
 		per = (add * 100) / siz;
 		dsp_bar(0, per);
 		fwrite((char *)savebuf, 512, 1, savFile);
@@ -82,8 +75,7 @@ int SaveBK_upd(char *name) {
 	fclose(savFile);
 	dsp_bar(-1, 0);
 
-//	if(FTP_FileSize(name) != (int)siz)
-//		return false;
+//	if(FTP_FileSize(name) != (int)siz)return false;
 
 	return true;
 }
@@ -100,8 +92,7 @@ void SaveBK_new(char *name) {
 
 		sprintf(fname, "%s/%s", ini.dir, name);
 		// if(FAT_FileExists(fname) != FAT_FT_FILE)
-		if(access(fname, F_OK) != 0)
-			break;
+		if(access(fname, F_OK) != 0)break;
 	}
 
 	if(no == 100) {
@@ -136,7 +127,7 @@ int Save_Rest(char *name) {
 		for(add = 0; add < savesize; add += 0x10000) {
 			per = (add * 100) / savesize;
 			dsp_bar(3, per);
-			if (useNewCardlib) { cardEepromSectorErase(add); } else { cardmeSectorErase(add); }
+			cardmeSectorErase(add);
 		}
 		dsp_bar(-1, 0);
 	}
@@ -175,7 +166,7 @@ int Save_Rest(char *name) {
 		// len = fread((char *)savebuf, len, 1, savFile);
 		len = fread((char *)savebuf, 1, len, savFile);
 		if(len > 0) {
-			if (useNewCardlib) { cardWriteEeprom(add, savebuf, len, savetype); } else { cardmeWriteEeprom(add, savebuf, len, savetype); }
+			cardmeWriteEeprom(add, savebuf, len, savetype);
 			add += len;
 		}
 	}
@@ -199,7 +190,7 @@ int Save_Init() {
 		for(add = 0; add < savesize; add += 0x10000) {
 			per = (add * 100) / savesize;
 			dsp_bar(3, per);
-			if (useNewCardlib) { cardEepromSectorErase(add); } else { cardmeSectorErase(add); }
+			cardmeSectorErase(add);
 		}
 		dsp_bar(3, 100);
 		dsp_bar(-1, 0);
@@ -220,100 +211,5 @@ int Save_Init() {
 	dsp_bar(-1, 0);
 
 	return true;
-}
-
-
-int RomBK_upd(char *name) {
-
-	FILE	*ndsFile;
-
-	u32	add;
-	int	per;
-	u32	siz, len;
-
-	dsp_bar(4, -1);
-
-	sprintf(fname, "%s/%s", ini.dir, name);
-
-	siz = Devicecapacity;
-	if(ini.trim != 0) {
-		siz = UsedROMsize;
-		siz = ((siz + 511) / 512) * 512;
-//		siz = ((siz + 1023) / 1024) * 1024;
-	}
-
-	if(useNewCardlib) {
-		ndsFile = fopen(fname, "wb");
-		if(ndsFile == NULL) {
-			dsp_bar(-1, 0);
-			return false;
-		}
-	
-		dsp_bar(4, 0);
-	
-		// Modern card lib builds the header/secure area regions on it's own and provides them if read offsets are in the related regions expected.
-		// Thus offset will be set to 0 for this read operation
-		for(add = 0; add < siz; add += 0x4000) {
-			for(len = 0; len < 0x4000; len += 512) {
-				if(add + len >= siz)break;
-				cardRead(add + len, (u32*)((u8*)(romsc2 + len)), false);
-			}
-			per = (int)(((u64)(add + len) * 100) / siz);
-			dsp_bar(4, per);
-			fwrite((char *)romsc2, len, 1, ndsFile);
-		}
-	
-		dsp_bar(4, 100);
-	
-		fclose(ndsFile);
-		dsp_bar(-1, 0);
-	} else {
-		ndsFile = fopen(fname, "wb");
-		if(ndsFile == NULL) {
-			dsp_bar(-1, 0);
-			return false;
-		}
-	
-		dsp_bar(4, 0);
-		fwrite((char *)romhead, 512, 1, ndsFile);
-	
-		memset((char *)romsc2, 0x00, 0x3e00);
-		add = 0x4000;
-		per = (int)(((u64)add * 100) / siz);
-		dsp_bar(4, per);
-		fwrite((char *)romsc2, 0x3E00, 1, ndsFile);
-	
-		add = 0x8000;
-		per = (int)(((u64)add * 100) / siz);
-		dsp_bar(4, per);
-		fwrite((char *)romsc1, 0x4000, 1, ndsFile);
-	
-		for(add = 0x8000; add < siz; add += 0x4000) {
-			for(len = 0; len < 0x4000; len += 512) {
-				if(add + len >= siz)	break;
-				Read_Data((u8*)(romsc2 + len), add + len);
-			}
-			per = (int)(((u64)(add + len) * 100) / siz);
-			dsp_bar(4, per);
-			fwrite((char *)romsc2, len, 1, ndsFile);
-		}
-	
-		dsp_bar(4, 100);
-	
-		fclose(ndsFile);
-		dsp_bar(-1, 0);
-
-//		if(FTP_FileSize(name) != (int)siz)
-//			return false;
-	}
-	return true;
-}
-
-
-void RomBK_new(char *name) {
-
-	sprintf(name, "%s_%s%02X.nds", GameTitle, Gamecode, RomVer);
-
-	return;
 }
 

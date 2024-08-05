@@ -18,9 +18,10 @@ extern "C" {
 #endif
 
 void cardmeReadEeprom(u32 address, u8 *data, u32 length, u32 addrtype);
+void cardmeSectorErase(u32 address);
+// int cardmeChipErase_old(void);
 int cardmeChipErase(void);	//	USE TO TYPE 3 FLASH MEMORY ONLY
 
-void cardmeSectorErase(u32 address);
 
 
 int cardmeGetType(void);	//
@@ -36,11 +37,9 @@ int cardmeSize(int tp);
 	tp:1~3
 	return:size (byte)
 */
-u8 cardmeReadID(int i) ;	//	don't work ??
-u8 cardmeCMD(u8 cmd,int address) ;
+u8 cardmeReadID(int i);	//	don't work ??
+u8 cardmeCMD(u8 cmd,int address);
 
-/*void cardmeSectorUnlock(u32 address);
-void cardmeChipUnlock(void);*/
 void cardmeReadHeader(uint8 * header);
 void cardmeWriteEeprom(u32 address, u8 *data, u32 length, u32 addrtype);
 

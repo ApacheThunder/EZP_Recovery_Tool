@@ -43,8 +43,8 @@ struct	SD_File	fs[200];
 
 extern	char	*romsc2;
 
-const char* defaultPath = "/NDS_Backup";
-const char* defaultINI = "/NDS_Backup_Tool_Slot2.ini";
+const char* defaultPath = "/EZP_Backup";
+const char* defaultINI = "/EZP_Recovery_Tool.ini";
 
 extern u8 defaultSettings[];
 extern u8 defaultSettingsEnd[];
@@ -55,9 +55,6 @@ void SD_ini() {
 	FILE *ftpini = NULL;
 	int	len, p, s;
 	char key[20];
-
-	ini.save = 0;
-	ini.trim = 0;
 	
 	strcpy(ini.dir, defaultPath);
 	
@@ -119,23 +116,6 @@ void SD_ini() {
 			ini.dir[s] = 0;
 		}
 
-		if(strcmp(key, "SaveFile") == 0) {
-			ini.save = 0;
-			while(p < len) {
-				if(romsc2[p] >= 0x30 && romsc2[p] <= 0x39)
-					break;
-				p++;
-			}
-			while(p < len) {
-				if(romsc2[p] < 0x30 || romsc2[p] > 0x39)
-					break;
-				ini.save = ini.save * 10 + romsc2[p] - 0x30;
-				p++;
-			}
-		}
-				
-		if(strcmp(key, "Trim") == 0)ini.trim = 1;
-		
 		while(p < len) {
 			p++;
 			if(romsc2[p - 1] == 0x0A)break;

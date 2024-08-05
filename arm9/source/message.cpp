@@ -6,7 +6,7 @@
 #include "message.h"
 
 char	*errmsg[14];
-char	*cnfmsg[14];
+char	*cnfmsg[15];
 char	*barmsg[5];
 char	*t_msg[20];
 char	*stsmsg[4];
@@ -46,7 +46,7 @@ static const	char*	errmsg_e[14] = {
 };
 
 
-static const	char*	cnfmsg_j[14] = {
+static const	char*	cnfmsg_j[15] = {
 			"(A):ＯＫ, (B):終了",				// 0
 			"(A):実行, (B):取消",				// 1
 			"Slot-1から現在のカードを抜いて",		// 2
@@ -60,10 +60,11 @@ static const	char*	cnfmsg_j[14] = {
 			"DSi Enhanced カードが検出されました。",		// 10
 			"取り出して再度挿入して完了してください。",		// 11
 			"TWL カードは従来の CardLib ではサポートされていません。",		// 12
-			"",		// 13
+			"",								// 13
+			"(A):ＯＫ, (B):無視する"				// 14
 };
 
-static const	char*	cnfmsg_e[14] = {
+static const	char*	cnfmsg_e[15] = {
 			"(A):OK, (B):Exit",							// 0
 			"(A):Run, (B):Cancel",						// 1
 			"Please pull out a present card",			// 2
@@ -78,6 +79,7 @@ static const	char*	cnfmsg_e[14] = {
 			"Please eject and reinsert to finish.",		// 11
 			"TWL card not supported on legacy cardLib.",// 12
 			"",											// 13
+			"(A):OK, (B):Ignore"							// 14
 };
 
 
@@ -158,8 +160,7 @@ static const	char*	stsmsg_e[4] = {
 			"FAT Initialize....",
 			"",
 			"",
-			"",
-
+			""
 };
 
 void setLangMsg() {
@@ -170,7 +171,7 @@ void setLangMsg() {
 
 	if(UserLang != 0) {
 		for(i = 0; i < 14; i++)errmsg[i] = (char*)errmsg_e[i];
-		for(i = 0; i < 13; i++)cnfmsg[i] = (char*)cnfmsg_e[i];
+		for(i = 0; i < 15; i++)cnfmsg[i] = (char*)cnfmsg_e[i];
 		for(i = 0; i < 5; i++)barmsg[i] = (char*)barmsg_e[i];
 		for(i = 0; i < 20; i++)t_msg[i] = (char*)t_msg_e[i];
 		for(i = 0; i < 4; i++)stsmsg[i] = (char*)stsmsg_e[i];
@@ -178,7 +179,7 @@ void setLangMsg() {
 	}
 
 	for(i = 0; i < 14; i++)errmsg[i] = (char*)errmsg_j[i];
-	for(i = 0; i < 13; i++)cnfmsg[i] = (char*)cnfmsg_j[i];
+	for(i = 0; i < 15; i++)cnfmsg[i] = (char*)cnfmsg_j[i];
 	for(i = 0; i < 5; i++)barmsg[i] = (char*)barmsg_j[i];
 	for(i = 0; i < 20; i++)t_msg[i] = (char*)t_msg_j[i];
 	for(i = 0; i < 4; i++)stsmsg[i] = (char*)stsmsg_j[i];

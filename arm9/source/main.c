@@ -242,9 +242,9 @@ int cnf_inp(int mode, int n1, int n2) {
 		}
 	}
 
-	DrawBox_SUB( SubScreen, x1, y1, x2, y2, 6, 0);
-	DrawBox_SUB( SubScreen, x1+1, y1+1, x2-1, y2-1, 5, 1);
-	DrawBox_SUB( SubScreen, x1+2, y1+2, x2-2, y2-2, 6, 0);
+	DrawBox_SUB( SubScreen, x1, y1, x2, y2, 1, 0);
+	DrawBox_SUB( SubScreen, x1+1, y1+1, x2-1, y2-1, 1, 1);
+	DrawBox_SUB( SubScreen, x1+2, y1+2, x2-2, y2-2, 0, 0);
 
 	ShinoPrint_SUB(SubScreen, x1 + 6, y1 + 6, (u8 *)msg1, 0, 0, 0);
 	ShinoPrint_SUB(SubScreen, x1 + 6, y1 + 20, (u8 *)cnfmsg[n2], 0, 0, 0);
@@ -286,12 +286,11 @@ void dsp_bar(int mod, int per) {
 			}
 		}
 
-		DrawBox(MainScreen, x1, y1, x2, y2, RGB15(31,31,0), 0);
-		DrawBox(MainScreen, x1+1, y1+1, x2-1, y2-1, RGB15(0,0,31), 1);
-		DrawBox(MainScreen, x1+2, y1+2, x2-2, y2-2, RGB15(31,31,0), 0);
+		DrawBox(MainScreen, x1, y1, x2, y2, RGB15(31,31,31), 0);
+		DrawBox(MainScreen, x1+1, y1+1, x2-1, y2-1, RGB15(0,0,0), 1);
+		DrawBox(MainScreen, x1+2, y1+2, x2-2, y2-2, RGB15(31,31,31), 0);
 
-		if(per != -2)
-			DrawBox(MainScreen, x1 + 28, y1 + 20, x1 + 129, y1 + 40, RGB15(31,31,31), 0);
+		if(per != -2)DrawBox(MainScreen, x1 + 28, y1 + 20, x1 + 129, y1 + 40, RGB15(31,31,31), 0);
 		ShinoPrint(MainScreen, x1 + 26, y1 + 6, (u8 *)barmsg[mod], RGB15(31,31,31), RGB15(31,31,31), 0);
 		oldper = -1;
 		return;
@@ -330,8 +329,10 @@ void _dsp_clear() {
 	DrawBox_SUB(SubScreen, 0, 28, 255, 114, 0, 1);
 }
 
-#define	FILELINE	10
-#define	FILEY		6
+//#define	FILELINE	10
+//#define	FILEY		6
+#define	FILELINE	12
+#define	FILEY		4
 
 void _ftp_dsp(int no, int mod, int x, int y) {
 	//	int	i;
@@ -351,14 +352,13 @@ void _ftp_dsp(int no, int mod, int x, int y) {
 *********/
 	
 
-
 	if(fileSize < 1000*1000) {
 		sprintf(tbuf, " %-31s %6.2f KB", dsp, (float)fileSize / 1024);
 	} else {
 		sprintf(tbuf, " %-31s %6.2f MB", dsp, (float)fileSize / (1024*1024));
 	}
 	if(mod == 1) {
-		ShinoPrint( MainScreen, x*6, y*12, (u8 *)tbuf, RGB15(31,0,0), RGB15(0,0,31), 1);
+		ShinoPrint( MainScreen, x*6, y*12, (u8 *)tbuf, RGB15(31,31,31), RGB15(15,15,15), 1);
 	} else { 
 		ShinoPrint( MainScreen, x*6, y*12, (u8 *)tbuf, RGB15(0,0,0), RGB15(31,31,31), 1); 
 	}
@@ -380,37 +380,27 @@ void _ftp_sel_dsp(int no, int yc, int mod) {
 		if(numFiles == 0)	pl = 7;
 		if(savetype < 1)pl = pls = 7;
 		if(CMDmode == 0) {
-			ShinoPrint_SUB( SubScreen, 15*6, 10*12, (u8 *)" Save Backup ", 0, 5, 1);
+			ShinoPrint_SUB( SubScreen, 15*6, 10*12, (u8 *)" Save Backup ", 0, 1, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 11*12+6, (u8 *)t_msg[4], pl, 0, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 12*12+6, (u8 *)t_msg[7], pls, 0, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 13*12+6, (u8 *)t_msg[10], 1, 0, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 14*12+6, (u8 *)t_msg[11], 1, 0, 1);
 		}
 		if(CMDmode == 1) {
-			ShinoPrint_SUB( SubScreen, 15*6, 10*12, (u8 *)" Save Restore", 0, 5, 1);
+			ShinoPrint_SUB( SubScreen, 15*6, 10*12, (u8 *)" Save Restore", 0, 1, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 11*12+6, (u8 *)t_msg[5], pl, 0, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 12*12+6, (u8 *)t_msg[8], 1, 0, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 13*12+6, (u8 *)t_msg[10], 1, 0, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 14*12+6, (u8 *)t_msg[12], 1, 0, 1);
 		}
-		if(CMDmode == 2) {
-			ShinoPrint_SUB( SubScreen, 15*6, 10*12, (u8 *)"  Rom Backup ", 0, 5, 1);
-			ShinoPrint_SUB( SubScreen, 2*6, 11*12+6, (u8 *)t_msg[6], pl, 0, 1);
-			ShinoPrint_SUB( SubScreen, 2*6, 12*12+6, (u8 *)t_msg[9], 1, 0, 1);
-			ShinoPrint_SUB( SubScreen, 2*6, 13*12+6, (u8 *)t_msg[10], 1, 0, 1);
-			ShinoPrint_SUB( SubScreen, 2*6, 14*12+6, (u8 *)t_msg[13], 1, 0, 1);
-		}
+		// Rom dump features removed. Use standard rom dumpers for this.
 
 		DrawBox(MainScreen, 0, (FILEY-1)*12-4, 255, FILEY*12-1, RGB15(0,0,0), 1);
 		DrawBox(MainScreen, 0, FILEY*12, 255, 191, RGB15(31,31,31), 1);
 
 		strncpy(dsp, ini.dir, 32);
 		dsp[32] = 0;
-		if(CMDmode == 2) {
-			sprintf(tbuf, "[%s/] %d NDS", dsp, numFiles);
-		} else	{ 
-			sprintf(tbuf, "[%s/] %d SAV", dsp, numFiles);
-		}
+		sprintf(tbuf, "[%s/] %d SAV", dsp, numFiles);
 		ShinoPrint(MainScreen, 0, (FILEY-1)*12-2, (u8 *)tbuf, RGB15(31,31,31), RGB15(0,0,0), 0);
 	}
 	
@@ -445,44 +435,24 @@ bool set_rom(bool forcePause) {
 	if (forcePause || !(isDSiMode() && (REG_SCFG_EXT & BIT(31)))) {
 		if(cnf_inp(0, 2, 3) & KEY_B)return false;
 	}
-		
+	
 	if(useNewCardlib) {
 		romID = 0xFFFFFFFF;
-	
 		while(romID == 0xFFFFFFFF) {
 			if (cardInit((sNDSHeaderExt*)CART_HEADER) != ERR_NONE) { romID = 0xFFFFFFFF; } else { romID = cardGetId(); }
 			if (romID != 0xFFFFFFFF)break;
-			if(cnf_inp(0, 7, 8) & KEY_B)return false;
-		}
-		
-		if ((((sNDSHeaderExt*)CART_HEADER)->unitCode > 0) && !isDSiMode()) {
-			u16 cachedHeaderCRC = ((sNDSHeaderExt*)CART_HEADER)->headerCRC16;
-			if (cnf_inp(0, 10, 11) & KEY_B)return false;
-			while(true) {
-				if (switchToTwlBlowfish((sNDSHeaderExt*)CART_HEADER) == cachedHeaderCRC) {
-					break;
-				} else {
-					twlBlowfish = false; // set this to false to force switchToTwlBlowfish running a second time.
-					if(cnf_inp(0, 7, 8) & KEY_B)return false;
-				}
-			}
+			// if (cnf_inp(0, 7, 8) & KEY_B)return false;
+			if (cnf_inp(14, 7, 8) & KEY_B)break;
 		}
 	} else {
 		romID = Rom_Read(0, (u8*)romhead, (u8*)romsc1);
-		REDO:
 		while (romID == 0xFFFFFFFF) {
-			if(cnf_inp(0, 7, 8) & KEY_B)return false;
+			// if(cnf_inp(0, 7, 8) & KEY_B)return false;
+			if(cnf_inp(14, 7, 8) & KEY_B)break;
 			romID = Rom_Read(1, (u8*)romhead, (u8*)romsc1);
-		}
-		
-		if (((sNDSHeaderExt*)romhead)->unitCode > 0) {
-			if(cnf_inp(0, 12, 8) & KEY_B)return false;
-			romID = 0xFFFFFFFF;
-			romID = Rom_Read(1, (u8*)romhead, (u8*)romsc1);
-			goto REDO;
 		}
 	}
-
+	
 	for(i = 0; i < 12; i++) {
 		if((romhead[i] >= 0x30 && romhead[i] <= 0x39) || (romhead[i] >= 0x41 && romhead[i] <= 0x5A)) {
 			GameTitle[i] = romhead[i];
@@ -512,23 +482,24 @@ bool set_rom(bool forcePause) {
 	Devicecapacity = (128 << romhead[0x14]) * 1024;
 	UsedROMsize = *((u32*)(romhead + 0x80));
 
-	if (useNewCardlib) { savetype = cardEepromGetType(); } else { savetype = cardmeGetType(); }
+	savetype = cardmeGetType();
 		
 	if(savetype > 0) {
-		if (useNewCardlib) { savesize = cardEepromGetSize(savetype); } else { savesize = cardmeSize(savetype); }
-		if(savesize == 0)savetype = 0;
+		savesize = cardmeSize(savetype);
+		// if(savesize == 0)savetype = 0;
+		if(savesize == 0) { // default to EZP's save chip type and 4MB size
+			savetype = 3;
+			savesize = (4096 * 1024); 
+		}
 	} else {
-		savesize = 0;
+		// savesize = 0;
+		savetype = 3;
+		savesize = (4096 * 1024); // default to EZP's save chip type and 4MB size
 	}
 	
 
 	////////////////////////////////////////
 	gc = *((u32*)(romhead + 0x0C)) & 0x00FFFFFF;
-	
-	/*switch (gc) {
-		case 0x4D5341: { savetype = 3; savesize = (1024 * 1024); }break;	// ASMA - R4 Test
-		case 0x464D41: { savetype = 3; savesize = (1024 * 1024); }break;	// AMFE - M3 DS Real Test
-	}*/
 	
 	if(savetype == 3) {
 		// FLASH
@@ -536,8 +507,6 @@ bool set_rom(bool forcePause) {
 			case 0x455A41: { savesize = (512 * 1024); }break;	// ZELDA_DS FLASH 4M
 			case 0x414441: { savesize = (512 * 1024); }break;	// Pokemon_D FLASH 4M
 			case 0x415041: { savesize = (512 * 1024); }break;	// Pokemon_P FLASH 4M
-			// case 0x4A4241: { savesize = (4096 * 1024); }break;	// 32Mbit - Test for dumping EZ Flash Parallel.
-			// case 0x593241: { savesize = (512 * 1024); }break;	// MANIMANE FLASH 4M
 		}
 	}
 	
@@ -552,36 +521,34 @@ if(savetype == 0) {				// Unknown
 ******************/
 ///////////////////////////////////////
 
-	DrawBox_SUB(SubScreen, 6, 32, 249, 76+36, 5, 0);
-	DrawBox_SUB(SubScreen, 8, 34, 247, 74+36, 5, 0);
+	DrawBox_SUB(SubScreen, 6, 32, 249, 76+36, 1, 0);
+	DrawBox_SUB(SubScreen, 8, 34, 247, 74+36, 1, 0);
 	DrawBox_SUB(SubScreen, 9, 4*12, 246, 9*12-1, 0, 1);
 
 
-	ShinoPrint_SUB( SubScreen, 2*6, 3*12, (u8 *)"< ROM Information >", 1, 0, 0);
+	ShinoPrint_SUB( SubScreen, 2*6, 3*12, (u8 *)"< CART Information >", 1, 0, 0);
 
 	sprintf(tbuf, "Game Title : %s %s %02X", GameTitle, Gamecode, RomVer);
 	ShinoPrint_SUB( SubScreen, 5*6, 4*12, (u8 *)tbuf, 1, 0, 0);
-	// __builtin_bswap32(kangaroo);
 	// sprintf(tbuf, "Chip ID : %02X %02X %02X %02X", (unsigned int)romID & 0xFF, (unsigned int)(romID >> 8) & 0xFF, (unsigned int)(romID >> 16) & 0xFF, (unsigned int)(romID >> 24) & 0xFF);
-	sprintf(tbuf, "Chip ID : %02X %02X %02X %02X", ((u8)(romID >> 24) & 0xFF), ((u8)romID & 0xFF), ((u8)(romID >> 8) & 0xFF), ((u8)(romID >> 16) & 0xFF));
-
+	
+	if ((((u8)(romID >> 24) & 0xFF) == 0) && (((u8)(romID >> 16) & 0xFF) == 0)) {
+		sprintf(tbuf, "Chip ID : %02X %02X", ((u16)(romID >> 8) & 0xFF), ((u8)romID & 0xFF));
+	} else {
+		sprintf(tbuf, "Chip ID : %02X %02X %02X %02X", ((u8)(romID >> 24) & 0xFF), ((u8)(romID >> 16) & 0xFF), ((u8)(romID >> 8) & 0xFF), ((u8)romID & 0xFF));
+	}
 	
 	ShinoPrint_SUB( SubScreen, 5*6, 5*12, (u8 *)tbuf, 1, 0, 0);
 
 	sprintf(tbuf, "ROM Size(Used) : %6.2fMB(%6.2fMB)", (float)Devicecapacity / (1024*1024), (float)UsedROMsize / (1024*1024));
 	ShinoPrint_SUB( SubScreen, 5*6, 6*12, (u8 *)tbuf, 1, 0, 0);
 
-	if(savetype == -1)
-		sprintf(tbuf, "SAVE Type : 0 (Not provide)");
-	if(savetype == 0)
-		sprintf(tbuf, "SAVE Type : Unknown");
-	if(savetype == 1)
-		sprintf(tbuf, "SAVE Type : EEPROM %dK(%dByte)", (unsigned int)(savesize / (1024/8)), (unsigned int)savesize);
-	if(savetype == 2)
-		sprintf(tbuf, "SAVE Type : EEPROM %dK(%dKByte)", (unsigned int)(savesize / (1024/8)), (unsigned int)(savesize / 1024));
-	if(savetype == 3)
-		sprintf(tbuf, "SAVE Type : FLASH %dM(%dKByte)", (unsigned int)(savesize / (1024*1024/8)), (unsigned int)(savesize / 1024));
-	ShinoPrint_SUB( SubScreen, 5*6, 7*12+6, (u8 *)tbuf, 1, 0, 0);
+	if(savetype == -1)sprintf(tbuf, "SAVE Type : 0 (Not provide)");
+	if(savetype == 0)sprintf(tbuf, "SAVE Type : Unknown");
+	if(savetype == 1)sprintf(tbuf, "SAVE Type : EEPROM %dK(%dByte)", (unsigned int)(savesize / (1024/8)), (unsigned int)savesize);
+	if(savetype == 2)sprintf(tbuf, "SAVE Type : EEPROM %dK(%dKByte)", (unsigned int)(savesize / (1024/8)), (unsigned int)(savesize / 1024));
+	if(savetype == 3)sprintf(tbuf, "SAVE Type : FLASH %dM(%dKByte)", (unsigned int)(savesize / (1024*1024/8)), (unsigned int)(savesize / 1024));
+	ShinoPrint_SUB(SubScreen, 5*6, 7*12+6, (u8 *)tbuf, 1, 0, 0);
 
 	return true;
 }
@@ -708,18 +675,20 @@ int ftp_sel() {
 		if(numFiles > 0)_ftp_sel_sub2(ky, &yc, &sel);
 
 		if(ky & KEY_L) {
-			if(CMDmode > 0) {
-				CMDmode--;
-				cmd = 0;
-				break;
-			}
+			// if(CMDmode > 0) {
+			CMDmode--;
+			if (CMDmode < 0)CMDmode = 1;
+			cmd = 0;
+			break;
+			// }
 		}
 		if(ky & KEY_R) {
-			if(CMDmode < 2) {
-				CMDmode++;
-				cmd = 0;
-				break;
-			}
+			// if(CMDmode < 2) {
+			CMDmode++;
+			if (CMDmode > 1)CMDmode = 0;
+			cmd = 0;
+			break;
+			// }
 		}
 
 
@@ -770,17 +739,6 @@ int ftp_sel() {
 					}
 				}
 			}
-			if(CMDmode == 2) {
-				// Unicode2Local(fs[sel].uniname, (u8*)name, 24);
-				strcpy(name, fs[sel].filename);
-				sprintf(tbuf, "File Name : %s", name);
-				if(cnf_inp(1, -1, 5) & KEY_A) {
-					// if(!RomBK_upd(fs[sel].Alias))
-					if(!RomBK_upd(fs[sel].filename))err_cnf(7, 8);
-					cmd = 1;
-				}
-				break;
-			}
 		}
 
 		if(ky & KEY_B) {
@@ -795,15 +753,6 @@ int ftp_sel() {
 			}
 			if((CMDmode == 1) && (savetype > 0)) {
 				if(cnf_inp(1, 9, 13) & KEY_A)Save_Init();
-			}
-			if(CMDmode == 2) {
-				RomBK_new(name);
-				sprintf(tbuf, "File Name : %s", name);
-				if(cnf_inp(1, -1, 4) & KEY_A) {
-					if(!RomBK_upd(name))err_cnf(7, 8);
-					cmd = 1;
-					break;
-				}
 			}
 		}
 
@@ -830,9 +779,9 @@ void sts_dsp(int n1) {
 		return;
 	}
 
-	DrawBox_SUB( SubScreen, x1, y1, x2, y2, 6, 0);
-	DrawBox_SUB( SubScreen, x1+1, y1+1, x2-1, y2-1, 5, 1);
-	DrawBox_SUB( SubScreen, x1+2, y1+2, x2-2, y2-2, 6, 0);
+	DrawBox_SUB( SubScreen, x1, y1, x2, y2, 1, 0);
+	DrawBox_SUB( SubScreen, x1+1, y1+1, x2-1, y2-1, 1, 1);
+	DrawBox_SUB( SubScreen, x1+2, y1+2, x2-2, y2-2, 1, 0);
 
 	len = strlen(stsmsg[n1]);
 	ShinoPrint_SUB(SubScreen, 128 - (len/2)*6, y1 + 12, (u8 *)stsmsg[n1], 0, 0, 0);
@@ -844,43 +793,12 @@ void sts_dsp(int n1) {
 
 
 void dsp_main() {
-	char	ct[5];
-	// char* ct;
-
-	DrawBox(MainScreen, 2, 2, 253, 53, RGB15(0,0,0), 0);
-	DrawBox(MainScreen, 3, 3, 252, 52, RGB15(0,0,31), 1);
-	DrawBox(MainScreen, 4, 4, 251, 51, RGB15(31,31,31), 0);
+	DrawBox(MainScreen, 2, 2, 253, 27, RGB15(0,0,0), 0);
+	DrawBox(MainScreen, 3, 3, 252, 26, RGB15(0,0,0), 1);
+	DrawBox(MainScreen, 4, 4, 251, 25, RGB15(31,31,31), 0);
 	
-	if (isDSiMode()) {
-		// sprintf(tbuf, "Slot-2 Cartridge : [ DSI SD ]");
-		sprintf(tbuf, "    TWL Mode (DSi/3DS SD)");
-	} else {
-		ct[0] = io_dldi_data->ioInterface.ioType & 0xFF;
-		ct[1] = (io_dldi_data->ioInterface.ioType >> 8) & 0xFF;
-		ct[2] = (io_dldi_data->ioInterface.ioType >> 16) & 0xFF;
-		ct[3] = (io_dldi_data->ioInterface.ioType >> 24) & 0xFF;
-		ct[4] = 0;
-		sprintf(tbuf, "Slot-2 Cartridge : [ %s ]", ct);
-	}
-
-	ShinoPrint(MainScreen, 11+24, 8, (u8 *)tbuf, RGB15(31,31,31), RGB15(31,31,31), 0);
-//	sprintf(tbuf, "FTP Server IP : %d.%d.%d.%d  Port %d", ini.sv_ip[0], ini.sv_ip[1], ini.sv_ip[2], ini.sv_ip[3], ini.port);
-//	ShinoPrint(MainScreen, 11, 8, (u8 *)tbuf, RGB15(31,31,31), RGB15(31,31,31), 0);
-//	sprintf(tbuf, "    User Name : %s", ini.user);
-//	ShinoPrint(MainScreen, 11, 20, (u8 *)tbuf, RGB15(31,31,31), RGB15(31,31,31), 0);
-
-	if(ini.save == 0)
-		sprintf(tbuf, "Save File Size : Auto");
-	else	sprintf(tbuf, "Save File Size : %dKB", (int)ini.save);
-	ShinoPrint(MainScreen, 60, 24, (u8 *)tbuf, RGB15(31,31,31), RGB15(31,31,31), 0);
-
-	if(ini.trim != 0)
-		sprintf(tbuf, "Rom Backup Type: Trim ");
-	else	sprintf(tbuf, "Rom Backup Type: Not Trim");
-	ShinoPrint(MainScreen, 60, 36, (u8 *)tbuf, RGB15(31,31,31), RGB15(31,31,31), 0);
-//	ShinoPrint(MainScreen, 60, 48, (u8 *)tbuf, RGB15(16,16,16), RGB15(31,31,31), 0);
-
-
+	ShinoPrint(MainScreen, 9*6, 11-2, (u8*)"EZFlash Recovery Tool", RGB15(31,31,31), RGB15(31,31,31), 0);
+	ShinoPrint(MainScreen, 33*6, 11-2, (u8*)"v1.0", RGB15(31,31,31), RGB15(31,31,31), 0);
 }
 
 
@@ -889,9 +807,9 @@ void dsp_main() {
 extern	void	setLang(void);
 
 void mainloop(void) {
-//	FILE	*r4dt;
 	int	cmd;
 	int	fl;
+	char ct[5];
 
 	TIMER0_DATA = 0xFF7D;
 	TIMER0_CR = TIMER_ENABLE | TIMER_DIV_256;
@@ -901,19 +819,22 @@ void mainloop(void) {
 	keysSetRepeat(20, 6);		// def. 60, 30 (delay, repeat)
 
 	DrawBox_SUB(SubScreen, 20, 3, 235, 27, 1, 0);
-	DrawBox_SUB(SubScreen, 21, 4, 234, 26, 5, 1);
+	// DrawBox_SUB(SubScreen, 21, 4, 234, 26, 5, 1);
+	DrawBox_SUB(SubScreen, 21, 4, 234, 26, 1, 1);
 	DrawBox_SUB(SubScreen, 22, 5, 233, 25, 0, 0);
-	ShinoPrint_SUB( SubScreen, 9*6, 1*12-2, (u8*)"NDS Backup Tool (Slot2)", 0, 0, 0 );
-	ShinoPrint_SUB( SubScreen, 33*6, 12, (u8 *)"v0.35", 0, 0, 0 );
-
-	// r4tf = 0;
-//	if(_io_dldi == 0x46543452) {		// R4TF
-//		if((*(vu32*)0x027FFE18) != 0x00000000)
-//			r4tf = 1;
-//	}
-//	if(_io_dldi == 0x534D4C44)		// DLMS
-//		r4tf = 2;
-
+	
+	if (isDSiMode()) {
+		sprintf(tbuf, "    TWL Mode (DSi/3DS SD)");
+	} else {
+		ct[0] = io_dldi_data->ioInterface.ioType & 0xFF;
+		ct[1] = (io_dldi_data->ioInterface.ioType >> 8) & 0xFF;
+		ct[2] = (io_dldi_data->ioInterface.ioType >> 16) & 0xFF;
+		ct[3] = (io_dldi_data->ioInterface.ioType >> 24) & 0xFF;
+		ct[4] = 0;
+		sprintf(tbuf, "Slot-2 Cartridge : [ %s ]", ct);
+	}
+	
+	ShinoPrint_SUB(SubScreen, 11+24, 9, (u8 *)tbuf, 0, 0, 0);
 
 	setLangMsg();
 
@@ -1020,12 +941,13 @@ void mainloop(void) {
 		free(romsc2);
 		turn_off(0);
 	}
-
-	DrawBox_SUB(SubScreen, 6, 125, 249, 190, 5, 0);
-	DrawBox_SUB(SubScreen, 8, 127, 247, 188, 5, 0);
+	
+	
+	DrawBox_SUB(SubScreen, 6, 125, 249, 190, 1, 0);
+	DrawBox_SUB(SubScreen, 8, 127, 247, 188, 1, 0);
 
 	DrawBox_SUB(SubScreen, 75, 115, 181, 136, 1, 0);
-	DrawBox_SUB(SubScreen, 76, 116, 180, 135, 5, 1);
+	DrawBox_SUB(SubScreen, 76, 116, 180, 135, 1, 1);
 	DrawBox_SUB(SubScreen, 77, 117, 179, 134, 0, 0);
 
 
@@ -1035,16 +957,14 @@ void mainloop(void) {
 	while(cmd != -1) {
 		if(fl != (CMDmode & 2)) {
 			DrawBox(MainScreen, 0, FILEY*12, 255, 191, RGB15(31,31,31), 1);
-			ShinoPrint(MainScreen, 42, 90,  (u8 *)t_msg[2], RGB15(31,31,31), RGB15(0,0,31), 1);
+			/*ShinoPrint(MainScreen, 42, 90,  (u8 *)t_msg[2], RGB15(31,31,31), RGB15(0,0,31), 1);
 			ShinoPrint(MainScreen, 42, 102,  (u8 *)t_msg[3], RGB15(31,31,31), RGB15(0,0,31), 1);
-			ShinoPrint(MainScreen, 42, 114, (u8 *)t_msg[2], RGB15(31,31,31), RGB15(0,0,31), 1);
-			if(CMDmode == 2) {
-				numFiles = SD_FileList(1);
-				fl = 2;
-			} else {
-				numFiles = SD_FileList(0);
-				fl = 0;
-			}
+			ShinoPrint(MainScreen, 42, 114, (u8 *)t_msg[2], RGB15(31,31,31), RGB15(0,0,31), 1);*/
+			ShinoPrint(MainScreen, 42, 90,  (u8 *)t_msg[2], RGB15(31,31,31), RGB15(31,0,0), 1);
+			ShinoPrint(MainScreen, 42, 102,  (u8 *)t_msg[3], RGB15(31,31,31), RGB15(31,0,0), 1);
+			ShinoPrint(MainScreen, 42, 114, (u8 *)t_msg[2], RGB15(31,31,31), RGB15(31,0,0), 1);
+			numFiles = SD_FileList(0);
+			fl = 0;
 		}
 
 		cmd = ftp_sel();

@@ -1,8 +1,6 @@
 
 struct	ini_file {
 	char	dir[64];
-	u32	save;
-	u32	trim;
 };
 
 extern	struct	ini_file	ini;
