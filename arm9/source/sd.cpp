@@ -144,7 +144,7 @@ bool nameEndsWith (const string& name, const string& extension) {
 	return false;
 }
 
-int SD_FileList(int type) {
+int SD_FileList() {
 	int	num = 0;
 
 	if(access(ini.dir, F_OK) != 0)mkdir(ini.dir, 0777);
@@ -154,9 +154,6 @@ int SD_FileList(int type) {
 	
 	DIR *pdir = opendir (".");
 	
-	const char* EXT;
-	if (type == 0) { EXT = ".SAV"; } else { EXT = ".NDS"; }
-
 	if (pdir != NULL) {
 		while(true) {
 			dirent* pent = readdir(pdir);
@@ -164,7 +161,7 @@ int SD_FileList(int type) {
 						
 			stat(pent->d_name, &st);
 
-			if (((string)pent->d_name).compare(".") != 0 && ((st.st_mode & S_IFMT) != S_IFDIR) && nameEndsWith(pent->d_name, EXT)) {
+			if (((string)pent->d_name).compare(".") != 0 && ((st.st_mode & S_IFMT) != S_IFDIR) && nameEndsWith(pent->d_name, ".BIN")) {
 				strcpy(fs[num].filename, pent->d_name);
 				FILE *file = fopen(pent->d_name, "rb");
 				if (file) {

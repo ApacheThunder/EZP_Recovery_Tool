@@ -17,7 +17,7 @@ extern "C" {
 #endif
 
 extern	void	SD_ini();
-extern	int	SD_FileList(int	type);
+extern	int	SD_FileList();
 
 #ifdef __cplusplus
 }

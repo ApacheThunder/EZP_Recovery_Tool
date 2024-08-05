@@ -88,7 +88,7 @@ void SaveBK_new(char *name) {
 	dsp_bar(2, -2);
 
 	for(no = 0; no < 100; no++) {
-		sprintf(name, "%s_%s_%02d.sav", GameTitle, Gamecode, no);
+		sprintf(name, "%s_%s_%02d.bin", GameTitle, Gamecode, no);
 
 		sprintf(fname, "%s/%s", ini.dir, name);
 		// if(FAT_FileExists(fname) != FAT_FT_FILE)
@@ -97,7 +97,7 @@ void SaveBK_new(char *name) {
 
 	if(no == 100) {
 		no = 0;
-		sprintf(name, "%s_%s_%02d.sav", GameTitle, Gamecode, no);
+		sprintf(name, "%s_%s_%02d.bin", GameTitle, Gamecode, no);
 	}
 
 	dsp_bar(-1, 0);

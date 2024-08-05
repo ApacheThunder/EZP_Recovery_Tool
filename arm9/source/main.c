@@ -58,6 +58,9 @@ extern uint16* SubScreen;
 
 #define BG_256_COLOR   (BIT(7))
 
+#define VERSION				"v1.1"
+#define VERSIONOFFSET		(37*6)
+
 char GameTitle[13];
 char Gamecode[5];
 char RomVer;
@@ -300,10 +303,8 @@ void dsp_bar(int mod, int per) {
 
 	if(per != oldper) {
 		oldper = per;
-		if(per > 0)
-			DrawBox(MainScreen, x1 + 29, y1 + 21, x1 + 28 + per, y1 + 39, RGB15(30,0,0), 1);
-		if(per < 100)
-			DrawBox(MainScreen, x1 + 28 + per + 1, y1 + 21, x1 + 128, y1 + 39, RGB15(0,30,0), 1);
+		if(per > 0)DrawBox(MainScreen, x1 + 29, y1 + 21, x1 + 28 + per, y1 + 39, RGB15(11,11,11), 1);
+		if(per < 100)DrawBox(MainScreen, x1 + 28 + per + 1, y1 + 21, x1 + 128, y1 + 39, RGB15(19,19,19), 1);
 		sprintf(tbuf, "%2d%%", per);
 		ShinoPrint(MainScreen, x1 + 74, y1 + 24, (u8 *)tbuf, RGB15(31,31,31), RGB15(31,31,31), 0);
 	}
@@ -380,14 +381,15 @@ void _ftp_sel_dsp(int no, int yc, int mod) {
 		if(numFiles == 0)	pl = 7;
 		if(savetype < 1)pl = pls = 7;
 		if(CMDmode == 0) {
-			ShinoPrint_SUB( SubScreen, 15*6, 10*12, (u8 *)" Save Backup ", 0, 1, 1);
+			ShinoPrint_SUB( SubScreen, 15*6, 10*12, (u8 *)" ", 0, 1, 1);
+			ShinoPrint_SUB( SubScreen, 15*6+3, 10*12, (u8 *)"Flash Backup ", 0, 1, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 11*12+6, (u8 *)t_msg[4], pl, 0, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 12*12+6, (u8 *)t_msg[7], pls, 0, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 13*12+6, (u8 *)t_msg[10], 1, 0, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 14*12+6, (u8 *)t_msg[11], 1, 0, 1);
 		}
 		if(CMDmode == 1) {
-			ShinoPrint_SUB( SubScreen, 15*6, 10*12, (u8 *)" Save Restore", 0, 1, 1);
+			ShinoPrint_SUB( SubScreen, 15*6, 10*12, (u8 *)"Flash Restore", 0, 1, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 11*12+6, (u8 *)t_msg[5], pl, 0, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 12*12+6, (u8 *)t_msg[8], 1, 0, 1);
 			ShinoPrint_SUB( SubScreen, 2*6, 13*12+6, (u8 *)t_msg[10], 1, 0, 1);
@@ -400,7 +402,7 @@ void _ftp_sel_dsp(int no, int yc, int mod) {
 
 		strncpy(dsp, ini.dir, 32);
 		dsp[32] = 0;
-		sprintf(tbuf, "[%s/] %d SAV", dsp, numFiles);
+		sprintf(tbuf, "[%s/] %d BIN", dsp, numFiles);
 		ShinoPrint(MainScreen, 0, (FILEY-1)*12-2, (u8 *)tbuf, RGB15(31,31,31), RGB15(0,0,0), 0);
 	}
 	
@@ -543,11 +545,11 @@ if(savetype == 0) {				// Unknown
 	sprintf(tbuf, "ROM Size(Used) : %6.2fMB(%6.2fMB)", (float)Devicecapacity / (1024*1024), (float)UsedROMsize / (1024*1024));
 	ShinoPrint_SUB( SubScreen, 5*6, 6*12, (u8 *)tbuf, 1, 0, 0);
 
-	if(savetype == -1)sprintf(tbuf, "SAVE Type : 0 (Not provide)");
-	if(savetype == 0)sprintf(tbuf, "SAVE Type : Unknown");
-	if(savetype == 1)sprintf(tbuf, "SAVE Type : EEPROM %dK(%dByte)", (unsigned int)(savesize / (1024/8)), (unsigned int)savesize);
-	if(savetype == 2)sprintf(tbuf, "SAVE Type : EEPROM %dK(%dKByte)", (unsigned int)(savesize / (1024/8)), (unsigned int)(savesize / 1024));
-	if(savetype == 3)sprintf(tbuf, "SAVE Type : FLASH %dM(%dKByte)", (unsigned int)(savesize / (1024*1024/8)), (unsigned int)(savesize / 1024));
+	if(savetype == -1)sprintf(tbuf, "FLASH Type : 0 (Not provide)");
+	if(savetype == 0)sprintf(tbuf, "FLASH Type : Unknown");
+	if(savetype == 1)sprintf(tbuf, "FLASH Type : EEPROM %dK(%dByte)", (unsigned int)(savesize / (1024/8)), (unsigned int)savesize);
+	if(savetype == 2)sprintf(tbuf, "FLASH Type : EEPROM %dK(%dKByte)", (unsigned int)(savesize / (1024/8)), (unsigned int)(savesize / 1024));
+	if(savetype == 3)sprintf(tbuf, "FLASH Type : FLASH %dM(%dKByte)", (unsigned int)(savesize / (1024*1024/8)), (unsigned int)(savesize / 1024));
 	ShinoPrint_SUB(SubScreen, 5*6, 7*12+6, (u8 *)tbuf, 1, 0, 0);
 
 	return true;
@@ -797,8 +799,8 @@ void dsp_main() {
 	DrawBox(MainScreen, 3, 3, 252, 26, RGB15(0,0,0), 1);
 	DrawBox(MainScreen, 4, 4, 251, 25, RGB15(31,31,31), 0);
 	
-	ShinoPrint(MainScreen, 9*6, 11-2, (u8*)"EZFlash Recovery Tool", RGB15(31,31,31), RGB15(31,31,31), 0);
-	ShinoPrint(MainScreen, 33*6, 11-2, (u8*)"v1.0", RGB15(31,31,31), RGB15(31,31,31), 0);
+	ShinoPrint(MainScreen, 11*6, 11-2, (u8*)"EZFlash Recovery Tool", RGB15(31,31,31), RGB15(31,31,31), 0);
+	ShinoPrint(MainScreen, VERSIONOFFSET, 11-2, (u8*)VERSION, RGB15(31,31,31), RGB15(31,31,31), 0);
 }
 
 
@@ -824,17 +826,17 @@ void mainloop(void) {
 	DrawBox_SUB(SubScreen, 22, 5, 233, 25, 0, 0);
 	
 	if (isDSiMode()) {
-		sprintf(tbuf, "    TWL Mode (DSi/3DS SD)");
+		sprintf(tbuf, "     TWL Mode (DSi/3DS SD)");
 	} else {
 		ct[0] = io_dldi_data->ioInterface.ioType & 0xFF;
 		ct[1] = (io_dldi_data->ioInterface.ioType >> 8) & 0xFF;
 		ct[2] = (io_dldi_data->ioInterface.ioType >> 16) & 0xFF;
 		ct[3] = (io_dldi_data->ioInterface.ioType >> 24) & 0xFF;
 		ct[4] = 0;
-		sprintf(tbuf, "Slot-2 Cartridge : [ %s ]", ct);
+		sprintf(tbuf, "  Slot-2 Cartridge : [ %s ]", ct);
 	}
 	
-	ShinoPrint_SUB(SubScreen, 11+24, 9, (u8 *)tbuf, 0, 0, 0);
+	ShinoPrint_SUB(SubScreen, 36, 9, (u8 *)tbuf, 0, 0, 0);
 
 	setLangMsg();
 
@@ -957,13 +959,10 @@ void mainloop(void) {
 	while(cmd != -1) {
 		if(fl != (CMDmode & 2)) {
 			DrawBox(MainScreen, 0, FILEY*12, 255, 191, RGB15(31,31,31), 1);
-			/*ShinoPrint(MainScreen, 42, 90,  (u8 *)t_msg[2], RGB15(31,31,31), RGB15(0,0,31), 1);
-			ShinoPrint(MainScreen, 42, 102,  (u8 *)t_msg[3], RGB15(31,31,31), RGB15(0,0,31), 1);
-			ShinoPrint(MainScreen, 42, 114, (u8 *)t_msg[2], RGB15(31,31,31), RGB15(0,0,31), 1);*/
 			ShinoPrint(MainScreen, 42, 90,  (u8 *)t_msg[2], RGB15(31,31,31), RGB15(31,0,0), 1);
 			ShinoPrint(MainScreen, 42, 102,  (u8 *)t_msg[3], RGB15(31,31,31), RGB15(31,0,0), 1);
 			ShinoPrint(MainScreen, 42, 114, (u8 *)t_msg[2], RGB15(31,31,31), RGB15(31,0,0), 1);
-			numFiles = SD_FileList(0);
+			numFiles = SD_FileList();
 			fl = 0;
 		}
 

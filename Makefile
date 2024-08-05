@@ -8,9 +8,9 @@ endif
 export TARGET := EZP_Recovery_Tool
 export TOPDIR := $(CURDIR)
 
-export VERSION_MAJOR	:= 1
-export VERSION_MINOR	:= 0
-export VERSTRING	:=	$(VERSION_MAJOR).$(VERSION_MINOR)
+# export VERSION_MAJOR	:= 1
+# export VERSION_MINOR	:= 1
+# export VERSTRING	:=	$(VERSION_MAJOR).$(VERSION_MINOR)
 
 # GMAE_ICON is the image used to create the game icon, leave blank to use default rule
 GAME_ICON :=
