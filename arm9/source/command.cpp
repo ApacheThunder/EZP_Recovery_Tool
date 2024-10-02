@@ -180,12 +180,17 @@ int Save_Rest(char *name) {
 }
 
 int Save_Init() {
-
 	u32	add;
 	int	per;
 	int	len;
 
 	if(savetype == 3) {
+		u8 reg;
+		// Unlock block 0 (0x0 to 0x8000). Seems to only be possible if WP# is lifted though! // Courtasy of Nat (nathaantfm)
+		spiTransfer(0, 0, 1, 0x6); // Send write enable
+		spiTransfer(0, 0, 2, 0x1, 0x0); // Write status register bits 7-0
+		do { spiTransfer(1, &reg, 1, 0x5); } while (reg & 0x1); // Read status register // Write in progress
+		
 		dsp_bar(3, -1);
 		for(add = 0; add < savesize; add += 0x10000) {
 			per = (add * 100) / savesize;

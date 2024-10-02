@@ -58,7 +58,7 @@ extern uint16* SubScreen;
 
 #define BG_256_COLOR   (BIT(7))
 
-#define VERSION				"v1.1"
+#define VERSION				"v1.2"
 #define VERSIONOFFSET		(37*6)
 
 char GameTitle[13];
@@ -959,9 +959,9 @@ void mainloop(void) {
 	while(cmd != -1) {
 		if(fl != (CMDmode & 2)) {
 			DrawBox(MainScreen, 0, FILEY*12, 255, 191, RGB15(31,31,31), 1);
-			ShinoPrint(MainScreen, 42, 90,  (u8 *)t_msg[2], RGB15(31,31,31), RGB15(31,0,0), 1);
-			ShinoPrint(MainScreen, 42, 102,  (u8 *)t_msg[3], RGB15(31,31,31), RGB15(31,0,0), 1);
-			ShinoPrint(MainScreen, 42, 114, (u8 *)t_msg[2], RGB15(31,31,31), RGB15(31,0,0), 1);
+			ShinoPrint(MainScreen, 42, 90,  (u8 *)t_msg[2], RGB15(31,31,31), RGB15(8,8,8), 1);
+			ShinoPrint(MainScreen, 42, 102,  (u8 *)t_msg[3], RGB15(31,31,31), RGB15(8,8,8), 1);
+			ShinoPrint(MainScreen, 42, 114, (u8 *)t_msg[2], RGB15(31,31,31), RGB15(8,8,8), 1);
 			numFiles = SD_FileList();
 			fl = 0;
 		}

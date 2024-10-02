@@ -111,7 +111,7 @@ int cardmeGetType(void) {
 	u8 c00;
 	u8 c05;
 	u8 c9f;
-	u8 reg;
+	// u8 reg;
 	
 	REG_EXMEMCNT &= ~0x0880;	// DS Card access ARM9:bit11=0   GBA Cart access ARM9:bit7=0
 	cardmeCMD(0x03,0);
@@ -129,13 +129,6 @@ int cardmeGetType(void) {
 		fclose(testFile);
 	}*/
 
-	// Unlock block 0 (0x0 to 0x8000). Seems to only be possible if WP# is lifted though! // Courtasy of Nat (nathaantfm)
-	spiTransfer(0, 0, 1, 0x6); // Send write enable
-	spiTransfer(0, 0, 2, 0x1, 0x0); // Write status register bits 7-0
-	do {
-		spiTransfer(1, &reg, 1, 0x5); // Read status register
-	} while (reg & 0x1); // Write in progress
-			
 	/*FILE *testFile2 = fopen("/registerData.bin", "wb");
 	if (testFile2) {
 		u8 securityReg1[1];

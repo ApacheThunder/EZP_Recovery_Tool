@@ -17,6 +17,8 @@
 extern "C" {
 #endif
 
+void spiTransfer(int rlen, u8 *dst, int cmdlen, ...);
+
 void cardmeReadEeprom(u32 address, u8 *data, u32 length, u32 addrtype);
 void cardmeSectorErase(u32 address);
 // int cardmeChipErase_old(void);
